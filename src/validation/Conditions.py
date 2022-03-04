@@ -2,7 +2,7 @@ import enum
 
 from clvm_tools import binutils
 
-from chiasim.hashable import Program
+from hashable import Program
 
 from .ConsensusError import ConsensusError, Err
 

@@ -8,11 +8,11 @@ from .consensus import (
     conditions_dict_for_solution,
     created_outputs_for_conditions_dict, hash_key_pairs_for_conditions_dict,
 )
-from chiasim.hashable import (
+from hashable import (
     CoinName, Header, HeaderHash,
     Program, ProgramHash, Signature, Unspent
 )
-from chiasim.storage import OverlayStorage, OverlayUnspentDB, RAMUnspentDB, RAM_DB, Storage, UnspentDB
+from storage import OverlayStorage, OverlayUnspentDB, RAMUnspentDB, RAM_DB, Storage, UnspentDB
 
 from .ConsensusError import ConsensusError, Err
 from .check_conditions import CONDITION_CHECKER_LOOKUP
