@@ -33,7 +33,7 @@ class BLSPublicHDKey:
         return self.public_hd_child(idx).public_key()
 
     def public_key(self):
-        return BLSPublicKey.from_bytes(bytes(self._bls_public_hd_key))
+        return BLSPublicKey(self._bls_public_hd_key)
 
     def fingerprint(self):
         return fingerprint_for_pk(self.public_key())
@@ -71,7 +71,7 @@ class BLSPrivateHDKey:
         return BLSPublicHDKey.from_bytes(blob)
 
     def private_hd_child(self, idx):
-        return self.__class__(self._bls_private_hd_key.private_child(idx))
+        return self.__class__(blspy.AugSchemeMPL.derive_child_sk(self._bls_private_hd_key, idx))
 
     def public_hd_child(self, idx):
         return self.public_hd_key().public_hd_child(idx)
@@ -86,7 +86,7 @@ class BLSPrivateHDKey:
         return int.from_bytes(bytes(self._bls_private_hd_key.get_private_key()), "big")
 
     def private_key(self):
-        return BLSPrivateKey(self._bls_private_hd_key.get_private_key())
+        return BLSPrivateKey(self._bls_private_hd_key)
 
     def public_child(self, idx):
         return self.public_hd_child(idx).public_key()

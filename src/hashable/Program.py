@@ -56,7 +56,6 @@ class Program(SExp, bin_methods):
     ) -> "Program":
         operator_lookup = OPERATOR_LOOKUP
         prog_args = Program.to(args)
-        breakpoint()
         if strict:
 
             def fatal_error(op, arguments):

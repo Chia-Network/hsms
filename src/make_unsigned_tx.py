@@ -2,15 +2,17 @@ from blspy import G2Element
 
 import hashlib
 
-import cbor
-
 from hashable import Coin, CoinSolution, Program, SpendBundle
-from multisig.pst import PartiallySignedTransaction, transform_pst
+from multisig.pst import PartiallySignedTransaction
+
+from clvm_tools.binutils import assemble
 
 
-PAY_TO_AGGSIG_ME_HEX = "ff01ffff32ffb0a272e9d1d50a4aea7d8f0583948090d0888be5777f2846800b8281139cd4aa9eee05f89b069857a3e77ccfaae1615f9cffa04bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a8080"
+PAY_TO_AGGSIG_ME_PROG = """(q (50
+     0x8ba79a9ccd362086d552a6f56da7fe612959b0dd372350ad798c77c2170de2163a00e499928cc40547a7a8a5e2cde6be
+     0x4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a))"""
 
-PAY_TO_AGGSIG_ME = Program.from_bytes(bytes.fromhex(PAY_TO_AGGSIG_ME_HEX))
+PAY_TO_AGGSIG_ME = Program.to(assemble(PAY_TO_AGGSIG_ME_PROG))
 
 
 def make_coin():
@@ -37,10 +39,14 @@ d = PartiallySignedTransaction(
     coin_solutions=list(spend_bundle.coin_solutions),
     sigs=[],
     delegated_solution=Program.to(0),
-    hd_hints=[],
+    hd_hints={
+        bytes.fromhex("c34eb867"): {
+            "hd_fingerprint": bytes.fromhex("0b92dcdd"),
+            "index": 0,
+        }
+    },
 )
 
-breakpoint()
 t = bytes(d)
 print()
 print(t.hex())

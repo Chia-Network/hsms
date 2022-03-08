@@ -25,7 +25,7 @@ class BLSPrivateKey:
         return cls(blspy.PrivateKey.from_bytes(blob))
 
     def sign(self, message_hash: bytes32) -> BLSSignature:
-        return BLSSignature(self.pk.sign_prepend_prehashed(message_hash).serialize())
+        return BLSSignature(blspy.AugSchemeMPL.sign(self.pk, message_hash))
 
     def public_key(self) -> BLSPublicKey:
         return BLSPublicKey(self.pk.get_public_key().serialize())

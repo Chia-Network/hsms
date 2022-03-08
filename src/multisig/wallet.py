@@ -119,7 +119,7 @@ async def do_generate_address(wallet, storage, input):
         pass
     address = wallet.address_for_index(index)
     print(f"address #{index} is {address}")
-    r = input(f"Generate coins with this address? (y/n)> ")
+    r = input("Generate coins with this address? (y/n)> ")
     if r.lower().startswith("y"):
         puzzle_hash = wallet.puzzle_hash_for_index(index)
         await generate_coins(wallet, storage, puzzle_hash, puzzle_hash)
@@ -176,7 +176,7 @@ async def do_spend_coin(wallet, storage, input):
     print("spend bundle = %s" % bytes(spend_bundle).hex())
 
     # optionally send to ledger sim
-    r = input(f"Send to ledger sim? (y/n)> ")
+    r = input("Send to ledger sim? (y/n)> ")
     if r.lower().startswith("y"):
         r = await storage.ledger_sim().push_tx(tx=spend_bundle)
     return spend_bundle

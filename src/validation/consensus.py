@@ -12,7 +12,6 @@ def conditions_for_solution(solution_program):
     try:
         puzzle_sexp = args.first()
         solution_sexp = args.rest()
-        breakpoint()
         r = puzzle_sexp.run(solution_sexp)
         return parse_sexp_to_conditions(r)
     except EvalError:
@@ -36,6 +35,7 @@ def created_outputs_for_conditions_dict(conditions_dict, input_coin_name):
         coin = Coin(input_coin_name, puzzle_hash, amount)
         output_coins.append(coin)
     return output_coins
+
 
 def hash_key_pairs_for_conditions_dict(conditions_dict):
     pairs = []
