@@ -21,8 +21,7 @@ def assert_block_index_exceeds(condition, coin, context):
     except ValueError:
         raise ConsensusError(Err.INVALID_CONDITION, (coin, condition))
     if context["block_index"] <= expected_block_index:
-        raise ConsensusError(
-            Err.ASSERT_BLOCK_INDEX_EXCEEDS_FAILED, (coin, condition))
+        raise ConsensusError(Err.ASSERT_BLOCK_INDEX_EXCEEDS_FAILED, (coin, condition))
 
 
 def assert_block_age_exceeds(condition, coin, context):

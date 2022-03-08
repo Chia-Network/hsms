@@ -33,9 +33,7 @@ class BLSPublicHDKey:
         return self.public_hd_child(idx).public_key()
 
     def public_key(self):
-        return BLSPublicKey.from_bytes(
-bytes(            self._bls_public_hd_key.get_public_key())
-        )
+        return BLSPublicKey.from_bytes(bytes(self._bls_public_hd_key))
 
     def fingerprint(self):
         return fingerprint_for_pk(self.public_key())
@@ -85,9 +83,7 @@ class BLSPrivateHDKey:
         return self.private_hd_child(idx).private_key()
 
     def secret_exponent(self):
-        return int.from_bytes(
-            bytes(self._bls_private_hd_key.get_private_key()), "big"
-        )
+        return int.from_bytes(bytes(self._bls_private_hd_key.get_private_key()), "big")
 
     def private_key(self):
         return BLSPrivateKey(self._bls_private_hd_key.get_private_key())

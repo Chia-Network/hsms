@@ -11,7 +11,8 @@ def conditions_for_solution(solution_program):
     args = Program.to(solution_program)
     try:
         puzzle_sexp = args.first()
-        solution_sexp = args.rest().first()
+        solution_sexp = args.rest()
+        breakpoint()
         r = puzzle_sexp.run(solution_sexp)
         return parse_sexp_to_conditions(r)
     except EvalError:
@@ -20,17 +21,6 @@ def conditions_for_solution(solution_program):
 
 def conditions_dict_for_solution(solution):
     return conditions_by_opcode(conditions_for_solution(solution))
-
-
-def hash_key_pairs_for_solution(solution):
-    return hash_key_pairs_for_conditions_dict(conditions_dict_for_solution(solution))
-
-
-def validate_spend_bundle_signature(spend_bundle) -> bool:
-    hash_key_pairs = []
-    for coin_solution in spend_bundle.coin_solutions:
-        hash_key_pairs += hash_key_pairs_for_solution(coin_solution.solution)
-    return spend_bundle.aggregated_signature.validate(hash_key_pairs)
 
 
 def created_outputs_for_conditions_dict(conditions_dict, input_coin_name):
@@ -46,7 +36,6 @@ def created_outputs_for_conditions_dict(conditions_dict, input_coin_name):
         coin = Coin(input_coin_name, puzzle_hash, amount)
         output_coins.append(coin)
     return output_coins
-
 
 def hash_key_pairs_for_conditions_dict(conditions_dict):
     pairs = []

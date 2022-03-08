@@ -3,8 +3,8 @@ import io
 
 from typing import Any
 
-from clvm import run_program, SExp, KEYWORD_TO_ATOM
-from clvm.operators import OPERATOR_LOOKUP  # noqa
+from clvm import run_program, SExp, EvalError
+from clvm.operators import OPERATOR_LOOKUP, OperatorDict  # noqa
 from clvm.serialize import sexp_from_stream, sexp_to_stream
 
 from .sized_bytes import bytes32
@@ -17,11 +17,6 @@ class Program(SExp, bin_methods):
     """
     A thin wrapper around s-expression data intended to be invoked with "eval".
     """
-
-    def __init__(self, v):
-        if isinstance(v, SExp):
-            v = v.v
-        super(Program, self).__init__(v)
 
     @classmethod
     def parse(cls, f):
@@ -53,15 +48,31 @@ class Program(SExp, bin_methods):
             s = b"\1" + atom
         return hashlib.sha256(s).digest()
 
-    def run(self, args) -> "Program":
+    def run(
+        self,
+        args,
+        max_cost=None,
+        strict=False,
+    ) -> "Program":
+        operator_lookup = OPERATOR_LOOKUP
         prog_args = Program.to(args)
+        breakpoint()
+        if strict:
+
+            def fatal_error(op, arguments):
+                raise EvalError("unimplemented operator", arguments.to(op))
+
+            operator_lookup = OperatorDict(
+                operator_lookup, unknown_op_handler=fatal_error
+            )
+
         cost, r = run_program(
             self,
             prog_args,
-            quote_kw=KEYWORD_TO_ATOM["q"],
-            args_kw=KEYWORD_TO_ATOM["a"],
-            operator_lookup=OPERATOR_LOOKUP,
+            operator_lookup,
+            max_cost,
         )
+
         return Program.to(r)
 
     def curry(self, *args) -> "Program":
