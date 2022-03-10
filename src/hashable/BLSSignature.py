@@ -4,27 +4,23 @@ import blspy
 
 from atoms import streamable
 
-from .sized_bytes import bytes48, bytes96
+from .sized_bytes import bytes32, bytes96
 
-from .Message import MessageHash
-
+from .BLSPublicKey import BLSPublicKey
 
 ZERO96 = bytes96([0] * 96)
-
-
-class BLSPublicKey(bytes48):
-    pass
 
 
 @streamable
 class BLSSignature:
     """
-    This wraps the blspy.BLSPublicKey and resolves a couple edge cases around aggregation and validation.
+    This wraps the blspy version and resolves a couple edge cases around aggregation and validation.
     """
+
     @streamable
     class aggsig_pair:
         public_key: BLSPublicKey
-        message_hash: MessageHash
+        message_hash: bytes32
 
     sig: bytes96
 

@@ -2,7 +2,6 @@ from hashable import Hash
 
 
 class Storage:
-
     async def hash_preimage(self, hash: Hash) -> bytes:
         raise NotImplementedError
 

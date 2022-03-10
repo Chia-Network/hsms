@@ -32,15 +32,13 @@ def assert_block_age_exceeds(condition, coin, context):
     except ValueError:
         raise ConsensusError(Err.INVALID_CONDITION, (coin, condition))
     if context["block_index"] <= expected_block_index:
-        raise ConsensusError(
-            Err.ASSERT_BLOCK_AGE_EXCEEDS_FAILED, (coin, condition))
+        raise ConsensusError(Err.ASSERT_BLOCK_AGE_EXCEEDS_FAILED, (coin, condition))
 
 
 def assert_time_exceeds(condition, coin, context):
     min_time = int_from_bytes(condition[1])
-    if context['creation_time'] <= min_time:
-        raise ConsensusError(
-            Err.ASSERT_TIME_EXCEEDS_FAILED, (coin, condition))
+    if context["creation_time"] <= min_time:
+        raise ConsensusError(Err.ASSERT_TIME_EXCEEDS_FAILED, (coin, condition))
 
 
 CONDITION_CHECKER_LOOKUP = {

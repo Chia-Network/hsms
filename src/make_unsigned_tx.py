@@ -2,6 +2,7 @@ from blspy import G2Element
 
 import hashlib
 
+from atoms.hexbytes import hexbytes
 from hashable import Coin, CoinSolution, Program, SpendBundle
 from multisig.pst import PartiallySignedTransaction
 
@@ -30,23 +31,51 @@ def make_spend_bundle():
     return spend_bundle
 
 
-spend_bundle = make_spend_bundle()
-print(spend_bundle)
+def main():
+    spend_bundle = make_spend_bundle()
+    print(spend_bundle)
 
-print(bytes(spend_bundle).hex())
+    print(bytes(spend_bundle).hex())
 
-d = PartiallySignedTransaction(
-    coin_solutions=list(spend_bundle.coin_solutions),
-    sigs=[],
-    delegated_solution=Program.to(0),
-    hd_hints={
-        bytes.fromhex("c34eb867"): {
-            "hd_fingerprint": bytes.fromhex("0b92dcdd"),
-            "index": 0,
-        }
-    },
-)
+    d = PartiallySignedTransaction(
+        coin_solutions=list(spend_bundle.coin_solutions),
+        sigs=[],
+        delegated_solution=Program.to(0),
+        hd_hints={
+            bytes.fromhex("c34eb867"): {
+                "hd_fingerprint": bytes.fromhex("0b92dcdd"),
+                "index": 0,
+            }
+        },
+    )
 
-t = bytes(d)
-print()
-print(t.hex())
+    t = bytes(d)
+    print()
+    print(t.hex())
+
+
+def round_trip():
+    spend_bundle = make_spend_bundle()
+    d = PartiallySignedTransaction(
+        coin_solutions=spend_bundle.coin_solutions,
+        sigs=[],
+        delegated_solution=Program.to(0),
+        hd_hints={
+            bytes(b"c34eb867"): {
+                "hd_fingerprint": bytes.fromhex("0b92dcdd"),
+                "index": 0,
+            }
+        },
+    )
+
+    b = hexbytes(d)
+    breakpoint()
+    d1 = PartiallySignedTransaction.from_bytes(b)
+    b1 = hexbytes(d1)
+    print(b)
+    print(b1)
+
+    assert b == b1
+
+
+round_trip()

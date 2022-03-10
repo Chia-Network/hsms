@@ -38,5 +38,11 @@ def hash_pointer(the_type, hash_f):
 
     namespace = dict(__new__=__new__, obj=obj)
     hash_pointer_type = type(
-        "%sPointer" % the_type.__name__, (hash_type, bin_methods,), namespace)
+        "%sPointer" % the_type.__name__,
+        (
+            hash_type,
+            bin_methods,
+        ),
+        namespace,
+    )
     return hash_pointer_type

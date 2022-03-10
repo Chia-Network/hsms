@@ -71,7 +71,9 @@ class BLSPrivateHDKey:
         return BLSPublicHDKey.from_bytes(blob)
 
     def private_hd_child(self, idx):
-        return self.__class__(blspy.AugSchemeMPL.derive_child_sk(self._bls_private_hd_key, idx))
+        return self.__class__(
+            blspy.AugSchemeMPL.derive_child_sk(self._bls_private_hd_key, idx)
+        )
 
     def public_hd_child(self, idx):
         return self.public_hd_key().public_hd_child(idx)

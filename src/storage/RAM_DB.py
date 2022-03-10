@@ -5,7 +5,6 @@ from .UnspentDB import Unspent, UnspentDB
 
 
 class RAM_DB(Storage, UnspentDB):
-
     def __init__(self):
         self._preimage_db = dict()
         self._unspent_db = dict()
@@ -19,7 +18,9 @@ class RAM_DB(Storage, UnspentDB):
     async def unspent_for_coin_name(self, coin_name: Hash) -> Unspent:
         return self._unspent_db.get(coin_name)
 
-    async def set_unspent_for_coin_name(self, coin_name: Hash, unspent: Unspent) -> None:
+    async def set_unspent_for_coin_name(
+        self, coin_name: Hash, unspent: Unspent
+    ) -> None:
         self._unspent_db[coin_name] = unspent
 
     async def all_unspents(self):
