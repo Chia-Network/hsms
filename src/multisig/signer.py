@@ -5,11 +5,11 @@ import os
 from pathlib import Path
 
 from validation.consensus import (
-    conditions_dict_for_solution,
+    conditions_dict_for_coin_spend,
     hash_key_pairs_for_conditions_dict,
 )
 
-from util.BLSHDKey import BLSPrivateHDKey, fingerprint_for_pk
+from bls12_381 import BLSPrivateKey
 
 from .pst import PartiallySignedTransaction
 
@@ -20,7 +20,7 @@ def create_private_wallet(path, entropy_f):
     file with the given path.
     """
     seed = hashlib.sha256(entropy_f()).digest()
-    private_hd_key = BLSPrivateHDKey.from_seed(seed)
+    private_hd_key = BLSPrivateKey.from_seed(seed)
     d = dict(key=bytes(private_hd_key).hex())
     with open(path, "w") as f:
         json.dump(d, f)
@@ -32,7 +32,7 @@ def load_private_wallet(path):
     """
     d = json.load(open(path))
     blob = bytes.fromhex(d["key"])
-    return BLSPrivateHDKey.from_bytes(blob)
+    return BLSPrivateKey.from_bytes(blob)
 
 
 def default_entropy():
@@ -51,17 +51,16 @@ def generate_signatures(pst, private_wallet):
     sigs = {}
     private_fingerprint = private_wallet.fingerprint()
 
-    for coin_solution in pst.get("coin_solutions"):
-        solution = coin_solution.solution
+    for coin_solution in pst.get("coin_spends"):
         # run maximal_solution and get conditions
-        conditions_dict = conditions_dict_for_solution(solution)
+        conditions_dict = conditions_dict_for_coin_spend(coin_solution)
         # look for AGG_SIG conditions
         hkp_list = hash_key_pairs_for_conditions_dict(conditions_dict)
         # see if we have enough info to build signatures
         for aggsig_pair in hkp_list:
             pub_key = aggsig_pair.public_key
             message_hash = aggsig_pair.message_hash
-            fp = fingerprint_for_pk(pub_key)
+            fp = pub_key.fingerprint()
             if fp in hd_hints:
                 hint = hd_hints[fp]
                 if private_fingerprint == hint.get("hd_fingerprint"):
@@ -93,7 +92,7 @@ def main():
     if not PATH.exists():
         create_private_wallet(PATH, default_entropy)
     private_wallet = load_private_wallet(PATH)
-    print("public hd key is %s" % private_wallet.public_hd_key())
+    print("public hd is %s" % private_wallet.public_key())
 
     pst = get_pst()
     if pst:

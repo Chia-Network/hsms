@@ -1,11 +1,11 @@
-from atoms import streamable
-
 from .Coin import Coin
 from .Program import Program
 
+from atoms import streamable
+
 
 @streamable
-class CoinSolution:
+class CoinSpend:
     """
     This is a rather disparate data structure that validates coin transfers. It's generally populated
     with data from different sources, since burned coins are identified by name, so it is built up
@@ -13,7 +13,11 @@ class CoinSolution:
     """
 
     coin: Coin
+    puzzle_reveal: Program
     solution: Program
+
+
+if 0:
 
     def conditions(self):
         # TODO: this (and the ones below) are in the wrong spot. Fix them

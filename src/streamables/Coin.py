@@ -7,7 +7,6 @@ from atoms import streamable, uint64
 from util.std_hash import std_hash
 
 from .sized_bytes import bytes32
-from .Program import ProgramHash
 
 
 @streamable
@@ -16,8 +15,8 @@ class Coin:
     This structure is used in the body for the reward and fees genesis coins.
     """
 
-    parent_coin_info: "CoinName"
-    puzzle_hash: ProgramHash
+    parent_coin_info: bytes32
+    puzzle_hash: bytes32
     amount: uint64
 
     @classmethod
@@ -34,21 +33,5 @@ class Coin:
         f.write(int_to_bytes(self.amount))
         return f.getvalue()
 
-    def name(self) -> "CoinName":
-        return CoinName(self)
-
-
-class CoinPointer(bytes32):
-    def __new__(cls, v):
-        if isinstance(v, Coin):
-            v = std_hash(bytes(v))
-        return bytes32.__new__(cls, v)
-
-    async def obj(self, storage):
-        blob = await storage.hash_preimage(self)
-        return Coin.from_bytes(blob)
-
-
-CoinName = CoinPointer
-
-Coin.__annotations__["parent_coin_info"] = CoinName
+    def name(self) -> bytes32:
+        return std_hash(bytes(self))

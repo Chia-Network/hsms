@@ -1,5 +1,6 @@
 from atoms import hexbytes
-from streamables import BLSSignature, CoinSolution, Program
+from bls12_381 import BLSSignature
+from streamables import CoinSpend, Program
 
 
 def remap(s, f):
@@ -89,10 +90,7 @@ def transform_dict(program_pairs, xformers):
     where the keys match the keys in d and the values of d are transformed
     by invoking the corresponding values in xformer.
     """
-    r = xform_clvm_list(lambda x: [x.pair[0].atom.decode(), x.pair[1].pair[0]])(
-        program_pairs
-    )
-    breakpoint()
+    r = xform_clvm_list(lambda x: [x.pair[0].atom, x.pair[1].pair[0]])(program_pairs)
     d = {}
     for k, v in r:
         v_transformer = xformers.get(k, lambda x: x)
@@ -116,7 +114,7 @@ HINT_TRANSFORMS = dict()
 
 
 PST_TRANSFORMS = dict(
-    coin_solutions=xform_clvm_list(lambda x: CoinSolution.from_bytes(x.atom)),
+    coin_spends=xform_clvm_list(lambda x: CoinSpend.from_bytes(x.atom)),
     sigs=xform_clvm_list(xform_aggsig_sig_pair),
     delegated_solution=lambda x: Program.from_bytes(x.atom),
     hd_hints=xform_dict(HINT_TRANSFORMS),

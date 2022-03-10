@@ -2,6 +2,8 @@ import blspy
 
 from streamables import bytes32
 
+from util.std_hash import std_hash
+
 from .BLSSignature import BLSSignature
 from .BLSPublicKey import BLSPublicKey
 
@@ -13,6 +15,11 @@ GROUP_ORDER = (
 class BLSPrivateKey:
     def __init__(self, sk: blspy.PrivateKey):
         self._sk = sk
+
+    @classmethod
+    def from_seed(cls, blob: bytes) -> "BLSPrivateKey":
+        secret_exponent = int.from_bytes(std_hash(blob), "big")
+        return cls.from_secret_exponent(secret_exponent)
 
     @classmethod
     def from_secret_exponent(cls, secret_exponent) -> "BLSPrivateKey":
@@ -31,7 +38,7 @@ class BLSPrivateKey:
         return BLSSignature(blspy.AugSchemeMPL.sign(self._sk, message_hash))
 
     def public_key(self) -> BLSPublicKey:
-        return BLSPublicKey(bytes(self._sk.get_g1()))
+        return BLSPublicKey(self._sk.get_g1())
 
     def secret_exponent(self):
         return int.from_bytes(bytes(self), "big")

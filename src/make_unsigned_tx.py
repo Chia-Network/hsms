@@ -1,9 +1,7 @@
-from blspy import G2Element
-
 import hashlib
 
 from atoms.hexbytes import hexbytes
-from streamables import Coin, CoinSolution, Program, SpendBundle
+from streamables import Coin, CoinSpend, Program
 from multisig.pst import PartiallySignedTransaction
 
 from clvm_tools.binutils import assemble
@@ -23,22 +21,20 @@ def make_coin():
     return coin
 
 
-def make_spend_bundle():
+def make_coin_spends():
     coin = make_coin()
-    solution_pair = Program.to((PAY_TO_AGGSIG_ME, 0))
-    coin_spend = CoinSolution(coin, solution_pair)
-    spend_bundle = SpendBundle([coin_spend], G2Element())
-    return spend_bundle
+    coin_spend = CoinSpend(coin, PAY_TO_AGGSIG_ME, Program.to(0))
+    return [coin_spend]
 
 
 def main():
-    spend_bundle = make_spend_bundle()
-    print(spend_bundle)
+    coin_spends = make_coin_spends()
+    print(coin_spends)
 
-    print(bytes(spend_bundle).hex())
+    print(bytes(coin_spends).hex())
 
     d = PartiallySignedTransaction(
-        coin_solutions=list(spend_bundle.coin_solutions),
+        coin_spends=list(coin_spends),
         sigs=[],
         delegated_solution=Program.to(0),
         hd_hints={
@@ -55,18 +51,21 @@ def main():
 
 
 def round_trip():
-    spend_bundle = make_spend_bundle()
+    coin_spends = make_coin_spends()
     d = PartiallySignedTransaction(
-        coin_solutions=spend_bundle.coin_solutions,
+        coin_spends=coin_spends,
         sigs=[],
         delegated_solution=Program.to(0),
         hd_hints={
-            bytes(b"c34eb867"): {
-                "hd_fingerprint": bytes.fromhex("0b92dcdd"),
+            1253746868: {
+                "hd_fingerprint": 194174173,
                 "index": 0,
             }
         },
     )
+
+    breakpoint()
+    print(coin_spends[0].puzzle_reveal)
 
     b = hexbytes(d)
     breakpoint()

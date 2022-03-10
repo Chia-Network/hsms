@@ -3,6 +3,7 @@ import blspy
 
 class BLSPublicKey:
     def __init__(self, g1: blspy.G1Element):
+        assert isinstance(g1, blspy.G1Element)
         self._g1 = g1
 
     @classmethod

@@ -19,7 +19,7 @@ from typing import Dict, List, Optional
 
 import segno
 
-from streamables import bytes32, Program
+from streamables import bytes32
 from bls12_381.BLSPrivateKey import BLSPrivateKey, BLSPublicKey, BLSSignature
 
 

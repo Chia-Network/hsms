@@ -15,7 +15,7 @@ from chiasim.validation import validate_spend_bundle_signature
 from chiasim.validation.Conditions import make_create_coin_condition
 
 from chiasim.validation.consensus import (
-    conditions_dict_for_solution,
+    conditions_dict_for_coin_spend,
     hash_key_pairs_for_conditions_dict,
 )
 
@@ -246,7 +246,7 @@ def sigs_to_aggsig_sig_dict(wallet, pst, sigs):
     all_aggsigs = set()
     for coin_solution in pst.get("coin_solutions"):
         solution = coin_solution.solution
-        conditions_dict = conditions_dict_for_solution(solution)
+        conditions_dict = conditions_dict_for_coin_spend(solution)
         hkp_list = hash_key_pairs_for_conditions_dict(conditions_dict)
         all_aggsigs.update(hkp_list)
     for sig in sigs:
@@ -278,9 +278,9 @@ def finalize_pst(wallet, pst, sigs):
     summary_list = []
 
     for coin_solution in pst.get("coin_solutions"):
-        coin, solution = coin_solution.coin, coin_solution.solution
+        coin = coin_solution.coin
         # run maximal_solution and get conditions
-        conditions_dict = conditions_dict_for_solution(solution)
+        conditions_dict = conditions_dict_for_coin_spend(coin_solution)
         # look for AGG_SIG conditions
         hkp_list = hash_key_pairs_for_conditions_dict(conditions_dict)
         # see if we have enough info to build signatures
