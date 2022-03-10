@@ -1,4 +1,4 @@
-from chiasim.hashable import Body, Header, HeaderHash
+from chiasim.streamables import Body, Header, HeaderHash
 from chiasim.storage import RAM_DB
 from chiasim.validation.chainview import apply_deltas
 from chiasim.wallet.deltas import additions_for_body, removals_for_body

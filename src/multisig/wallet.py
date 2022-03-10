@@ -5,7 +5,7 @@ from pathlib import Path
 
 # We import readline to allow extremely long cut & paste text strings
 
-from chiasim.hashable import (
+from chiasim.streamables import (
     BLSSignature,
     Coin,
     CoinSolution,
@@ -23,7 +23,7 @@ from puzzles.p2_m_of_n_delegate_direct import solution_for_delegated_puzzle
 from puzzles.p2_conditions import puzzle_for_conditions, solution_for_conditions
 
 
-from utilities.BLSHDKey import BLSPublicHDKey, fingerprint_for_pk
+from util.BLSHDKey import BLSPublicHDKey, fingerprint_for_pk
 
 from .pst import PartiallySignedTransaction
 from .storage import Storage

@@ -2,7 +2,7 @@ import enum
 
 from clvm_tools import binutils
 
-from hashable import Program
+from streamables import Program
 
 from .ConsensusError import ConsensusError, Err
 

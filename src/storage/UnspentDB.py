@@ -1,4 +1,4 @@
-from hashable import Hash, Unspent
+from streamables import Hash, Unspent
 
 
 class UnspentDB:

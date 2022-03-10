@@ -1,7 +1,7 @@
 from clvm.EvalError import EvalError
 from clvm.casts import int_from_bytes
 
-from hashable import BLSSignature, Coin, Program
+from streamables import BLSSignature, Coin, Program
 
 from .Conditions import conditions_by_opcode, parse_sexp_to_conditions, ConditionOpcode
 

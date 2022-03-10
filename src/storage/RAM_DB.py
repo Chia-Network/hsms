@@ -1,4 +1,4 @@
-from hashable import Hash, std_hash
+from streamables import Hash, std_hash
 
 from .Storage import Storage
 from .UnspentDB import Unspent, UnspentDB

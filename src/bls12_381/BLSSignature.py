@@ -4,7 +4,7 @@ import blspy
 
 from atoms import streamable
 
-from .sized_bytes import bytes32, bytes96
+from streamables.sized_bytes import bytes32, bytes96
 
 from .BLSPublicKey import BLSPublicKey
 

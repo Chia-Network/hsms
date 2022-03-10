@@ -3,7 +3,7 @@ from blspy import G2Element
 import hashlib
 
 from atoms.hexbytes import hexbytes
-from hashable import Coin, CoinSolution, Program, SpendBundle
+from streamables import Coin, CoinSolution, Program, SpendBundle
 from multisig.pst import PartiallySignedTransaction
 
 from clvm_tools.binutils import assemble

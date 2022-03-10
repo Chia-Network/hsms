@@ -1,4 +1,4 @@
-from hashable import Hash
+from streamables import Hash
 
 from .Storage import Storage
 

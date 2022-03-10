@@ -9,20 +9,18 @@
 
 """
 m: message `bytes32`
-p: partial pubkey `G1Element`
-f: final pubkey `G1Element` (optional, defaults to partial)
+p: partial pubkey `BLSPublicKey`
+f: final pubkey `BLSPublicKey` (optional, defaults to partial)
 t: fingerprint lists
 h: path hints
 """
 
 from typing import Dict, List, Optional
 
-from blspy import G1Element, G2Element
-
 import segno
 
-from hashable import bytes32, Program, BLSPublicKey
-from wallet.BLSPrivateKey import BLSPrivateKey
+from streamables import bytes32, Program
+from bls12_381.BLSPrivateKey import BLSPrivateKey, BLSPublicKey, BLSSignature
 
 
 class PathHint:
@@ -39,8 +37,8 @@ class PathHint:
 
 class SimpleSigningInfo:
     message: bytes32
-    partial_pubkey: G1Element
-    final_pubkey: Optional[G1Element]
+    partial_pubkey: BLSPublicKey
+    final_pubkey: Optional[BLSPublicKey]
     path_hints: List[PathHint]
 
     def __bytes__(self):
@@ -70,11 +68,11 @@ def trivial_wallet() -> Dict[int, int]:
 
 def generate_signature(
     message: bytes32,
-    partial_pubkey: G1Element,
+    partial_pubkey: BLSPublicKey,
     path: List[int],
     wallet: Dict[int, BLSPrivateKey],
-) -> Optional[G2Element]:
-    fp = partial_pubkey.get_fingerprint()
+) -> Optional[BLSSignature]:
+    fp = partial_pubkey.fingerprint()
     secret_key = wallet.get(fp)
     if secret_key:
         return secret_key.sign(message)
@@ -85,7 +83,7 @@ def main():
     while True:
         if 0:
             message = bytes32.fromhex(input("message (hex)> "))
-            partial_pubkey = G1Element.from_bytes(
+            partial_pubkey = BLSPublicKey.from_bytes(
                 bytes.fromhex(input("partial pubkey (hex)> "))
             )
             path_text = input("path (slash-separated int list) >")
@@ -94,7 +92,7 @@ def main():
             message = bytes32.fromhex(
                 "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
             )
-            partial_pubkey = G1Element.from_bytes(
+            partial_pubkey = BLSPublicKey.from_bytes(
                 bytes.fromhex(
                     "a53d42661673da60350e3630f16f5efd19267c83d0d69d85c18444ddcabdd7492388cd86f394b68e6c7ea20ede0d91c5"
                 )

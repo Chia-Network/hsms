@@ -1,5 +1,5 @@
 from atoms import hexbytes
-from hashable import BLSSignature, CoinSolution, Program
+from streamables import BLSSignature, CoinSolution, Program
 
 
 def remap(s, f):

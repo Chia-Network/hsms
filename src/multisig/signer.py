@@ -9,7 +9,7 @@ from validation.consensus import (
     hash_key_pairs_for_conditions_dict,
 )
 
-from utilities.BLSHDKey import BLSPrivateHDKey, fingerprint_for_pk
+from util.BLSHDKey import BLSPrivateHDKey, fingerprint_for_pk
 
 from .pst import PartiallySignedTransaction
 

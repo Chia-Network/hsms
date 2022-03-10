@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from typing import List
 
-from .BLSSignature import BLSSignature
+from bls12_381.BLSSignature import BLSSignature
+
 from .CoinSolution import CoinSolution
 
 

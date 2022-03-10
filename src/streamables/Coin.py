@@ -4,10 +4,10 @@ from clvm.casts import int_from_bytes, int_to_bytes
 
 from atoms import streamable, uint64
 
-from .Hash import std_hash
-from .Program import ProgramHash
+from util.std_hash import std_hash
 
 from .sized_bytes import bytes32
+from .Program import ProgramHash
 
 
 @streamable
