@@ -1,50 +1,16 @@
-from atoms import hexbytes
+from clvm.casts import int_from_bytes
+
 from bls12_381 import BLSSignature
 from streamables import CoinSpend, Program
 
 
-def remap(s, f):
-    """
-    Iterate through a json-like structure, applying remap(_, f) recursively
-    to all items in collectives and f(_) to all non-collectives
-    within the structure.
-    """
-    if isinstance(s, list):
-        return [remap(_, f) for _ in s]
-    if isinstance(s, tuple):
-        return tuple([remap(_, f) for _ in s])
-    if isinstance(s, dict):
-        return [[remap(k, f), remap(v, f)] for k, v in s.items()]
-    return f(s)
-
-
-def use_hexbytes(s):
-    """
-    Dig through json-like structure s and replace all instances of bytes
-    with hexbytes so the repr isn't as ugly.
-    """
-
-    def to_hexbytes(s):
-        if isinstance(s, bytes):
-            return hexbytes(s)
-        return s
-
-    return remap(s, to_hexbytes)
-
-
-def cbor_struct_to_bytes(s):
-    """
-    Dig through json-like structure s and replace t with bytes(t) for
-    every substructure t that supports it. This prepares a structure to
-    be serialized with cbor.
-    """
-
-    def to_bytes(k):
-        if hasattr(k, "__bytes__"):
-            return bytes(k)
-        return k
-
-    return remap(s, to_bytes)
+from util.clvm_serialization import (
+    xform_clvm_list,
+    transform_dict,
+    cbor_struct_to_bytes,
+    transform_dict_by_key,
+    transform_by_key,
+)
 
 
 class PartiallySignedTransaction(dict):
@@ -68,56 +34,34 @@ def xform_aggsig_sig_pair(pair):
     return (aggsig, sig)
 
 
-def xform_clvm_list(item_xform):
-    """
-    Return a function that transforms a list of items by calling
-    item_xform(_) on each element _ in the list.
-    """
-
-    def xform(item_list):
-        r = []
-        while item_list.pair:
-            this_item, item_list = item_list.pair
-            r.append(item_xform(this_item))
-        return r
-
-    return xform
-
-
-def transform_dict(program_pairs, xformers):
-    """
-    Transform elements of the dict d using the xformer (also a dict,
-    where the keys match the keys in d and the values of d are transformed
-    by invoking the corresponding values in xformer.
-    """
-    r = xform_clvm_list(lambda x: [x.pair[0].atom, x.pair[1].pair[0]])(program_pairs)
-    d = {}
-    for k, v in r:
-        v_transformer = xformers.get(k, lambda x: x)
-        d[k] = v_transformer(v)
-    return d
-
-
-def xform_dict(xformers):
-    """
-    Return a function that transforms a list of items by calling
-    item_xform(_) on each element _ in the list.
-    """
-    return lambda x: transform_dict(x, xformers)
-
-
 def to_str(b: bytes) -> str:
     return b.decode()
 
 
-HINT_TRANSFORMS = dict()
+HINT_TRANSFORMS = dict(
+    hd_fingerprint=lambda x: int_from_bytes(x.atom),
+    index=xform_clvm_list(lambda x: int_from_bytes(x.atom)),
+)
+
+
+def clvm_to_coin_spend(program):
+    return CoinSpend.from_bytes(program.atom)
+
+
+def deserialize_hints(program):
+    print(program)
+    breakpoint()
+    table = transform_dict(program, transform_dict_by_key(HINT_TRANSFORMS))
+    return table
 
 
 PST_TRANSFORMS = dict(
     coin_spends=xform_clvm_list(lambda x: CoinSpend.from_bytes(x.atom)),
     sigs=xform_clvm_list(xform_aggsig_sig_pair),
     delegated_solution=lambda x: Program.from_bytes(x.atom),
-    hd_hints=xform_dict(HINT_TRANSFORMS),
+    hd_hints=lambda x: transform_dict(
+        x, lambda k, v: (int_from_bytes(k.atom), deserialize_hints(v))
+    ),
 )
 
 
@@ -125,4 +69,4 @@ def transform_pst(pst):
     """
     Turn a pst `Program` into its corresponding constituent parts.
     """
-    return xform_dict(PST_TRANSFORMS)(pst)
+    return transform_dict(pst, transform_dict_by_key(PST_TRANSFORMS))

@@ -59,7 +59,7 @@ def round_trip():
         hd_hints={
             1253746868: {
                 "hd_fingerprint": 194174173,
-                "index": 0,
+                "index": [1, 5, 19],
             }
         },
     )
