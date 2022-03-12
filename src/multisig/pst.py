@@ -9,7 +9,6 @@ from util.clvm_serialization import (
     transform_dict,
     cbor_struct_to_bytes,
     transform_dict_by_key,
-    transform_by_key,
 )
 
 

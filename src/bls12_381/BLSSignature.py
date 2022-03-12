@@ -22,27 +22,46 @@ class BLSSignature:
         public_key: BLSPublicKey
         message_hash: bytes32
 
-    sig: bytes96
+    def __init__(self, g2: blspy.G2Element):
+        assert isinstance(g2, blspy.G2Element)
+        self._g2 = g2
 
     @classmethod
-    def aggregate(cls, sigs):
-        sigs = [_ for _ in sigs if _.sig != ZERO96]
-        if len(sigs) == 0:
-            sig = ZERO96
-        else:
-            wrapped_sigs = [blspy.PrependSignature.from_bytes(_.sig) for _ in sigs]
-            sig = blspy.PrependSignature.aggregate(wrapped_sigs).serialize()
-        return cls(sig)
+    def from_bytes(cls, blob):
+        bls_public_hd_key = blspy.G2Element.from_bytes(blob)
+        return cls(bls_public_hd_key)
+
+    @classmethod
+    def generator(cls):
+        return cls(blspy.G2Element.generator())
+
+    @classmethod
+    def zero(cls):
+        return cls(blspy.G2Element())
+
+    def __add__(self, other):
+        return self.__class__(self._g2 + other._g2)
+
+    def __eq__(self, other):
+        return bytes(self) == bytes(other)
+
+    def __bytes__(self) -> bytes:
+        return bytes(self._g2)
+
+    def __str__(self):
+        return bytes(self._g2).hex()
+
+    def __repr__(self):
+        return "<%s: %s>" % (self.__class__.__name__, self)
 
     def validate(self, hash_key_pairs: List[aggsig_pair]) -> bool:
         # check for special case of 0
         if len(hash_key_pairs) == 0:
             return True
-        message_hashes = [_.message_hash for _ in hash_key_pairs]
-        public_keys = [blspy.PublicKey.from_bytes(_.public_key) for _ in hash_key_pairs]
-        try:
-            # when the signature is invalid, this method chokes
-            signature = blspy.PrependSignature.from_bytes(self.sig)
-            return signature.verify(message_hashes, public_keys)
-        except Exception as ex:
-            return False
+
+        public_keys: List[blspy.G1Element] = [_.public_key._g1 for _ in hash_key_pairs]
+        message_hashes: List[bytes32] = [_.message_hash for _ in hash_key_pairs]
+
+        return blspy.AugSchemeMPL.aggregate_verify(
+            public_keys, message_hashes, self._g2
+        )

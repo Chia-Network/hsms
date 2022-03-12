@@ -17,46 +17,22 @@ h: path hints
 
 from typing import Dict, List, Optional
 
+import binascii
+import sys
+
 import segno
 
-from streamables import bytes32
-from bls12_381.BLSPrivateKey import BLSPrivateKey, BLSPublicKey, BLSSignature
-
-
-class PathHint:
-    fingerprint: bytes  # length == 4
-    path: List[int]
-
-    def __bytes__(self):
-        pass
-
-    @classmethod
-    def from_bytes(cls, blob) -> "SimpleSigningInfo":
-        pass
-
-
-class SimpleSigningInfo:
-    message: bytes32
-    partial_pubkey: BLSPublicKey
-    final_pubkey: Optional[BLSPublicKey]
-    path_hints: List[PathHint]
-
-    def __bytes__(self):
-        pass
-
-    @classmethod
-    def from_bytes(cls, blob) -> "SimpleSigningInfo":
-        pass
+from streamables import Program, SigningRequest
+from bls12_381.BLSSecretExponent import BLSSecretExponent, BLSSignature
 
 
 def build_wallet_for_secret_exponents(
     secret_exponents: List[int],
-) -> Dict[int, BLSPrivateKey]:
+) -> Dict[int, BLSSecretExponent]:
     d = {}
     for s in secret_exponents:
-        private_key = BLSPrivateKey.from_secret_exponent(s)
-        # breakpoint()
-        d[private_key.fingerprint()] = private_key
+        private_key = BLSSecretExponent.from_int(s)
+        d.setdefault(private_key.fingerprint(), []).append(private_key)
     return d
 
 
@@ -66,47 +42,52 @@ def trivial_wallet() -> Dict[int, int]:
     )
 
 
+def find_secret_key_for_signing_request(
+    wallet, signing_request: SigningRequest
+) -> Optional[BLSSecretExponent]:
+    for secret_key in wallet.get(signing_request.path_hints.fingerprint, []):
+        for index in signing_request.path_hints.path:
+            secret_key = secret_key.child(index)
+        if secret_key.public_key() == signing_request.partial_pubkey:
+            return secret_key
+    return None
+
+
 def generate_signature(
-    message: bytes32,
-    partial_pubkey: BLSPublicKey,
-    path: List[int],
-    wallet: Dict[int, BLSPrivateKey],
+    signing_request: SigningRequest,
+    wallet: Dict[int, BLSSecretExponent],
 ) -> Optional[BLSSignature]:
-    fp = partial_pubkey.fingerprint()
-    secret_key = wallet.get(fp)
+    breakpoint()
+    secret_key = find_secret_key_for_signing_request(wallet, signing_request)
     if secret_key:
-        return secret_key.sign(message)
+        return secret_key.sign(signing_request.message, signing_request.final_pubkey)
+    return None
+
+
+def create_signing_request_pipeline(f):
+    while True:
+        try:
+            line = f.readline()
+            if len(line) == 0:
+                break
+            blob = binascii.a2b_base64(line)
+            program = Program.from_bytes(blob)
+            yield SigningRequest.from_clvm(program)
+        except Exception as ex:
+            print(ex)
 
 
 def main():
     wallet = trivial_wallet()
-    while True:
-        if 0:
-            message = bytes32.fromhex(input("message (hex)> "))
-            partial_pubkey = BLSPublicKey.from_bytes(
-                bytes.fromhex(input("partial pubkey (hex)> "))
-            )
-            path_text = input("path (slash-separated int list) >")
-            print(path_text)
-        else:
-            message = bytes32.fromhex(
-                "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
-            )
-            partial_pubkey = BLSPublicKey.from_bytes(
-                bytes.fromhex(
-                    "a53d42661673da60350e3630f16f5efd19267c83d0d69d85c18444ddcabdd7492388cd86f394b68e6c7ea20ede0d91c5"
-                )
-            )
-
-            path_text = "2/3"
-        path = [int(_) for _ in path_text.split("/")]
-        print(message, partial_pubkey, path)
-        signature = generate_signature(message, partial_pubkey, path, wallet)
-        break
-    hex_sig = bytes(signature).hex()
-    print(hex_sig)
-    qr = segno.make_qr(hex_sig)
-    qr.terminal()
+    signing_request_pipeline = create_signing_request_pipeline(sys.stdin)
+    for signing_request in signing_request_pipeline:
+        print(signing_request)
+        signature = generate_signature(signing_request, wallet)
+        if signature:
+            encoded_sig = binascii.b2a_base64(bytes(signature)).decode()
+            print(encoded_sig)
+            qr = segno.make_qr(encoded_sig)
+            qr.terminal()
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ from validation.consensus import (
     hash_key_pairs_for_conditions_dict,
 )
 
-from bls12_381 import BLSPrivateKey
+from bls12_381 import BLSSecretExponent
 
 from .pst import PartiallySignedTransaction
 
@@ -20,7 +20,7 @@ def create_private_wallet(path, entropy_f):
     file with the given path.
     """
     seed = hashlib.sha256(entropy_f()).digest()
-    private_hd_key = BLSPrivateKey.from_seed(seed)
+    private_hd_key = BLSSecretExponent.from_seed(seed)
     d = dict(key=bytes(private_hd_key).hex())
     with open(path, "w") as f:
         json.dump(d, f)
@@ -32,7 +32,7 @@ def load_private_wallet(path):
     """
     d = json.load(open(path))
     blob = bytes.fromhex(d["key"])
-    return BLSPrivateKey.from_bytes(blob)
+    return BLSSecretExponent.from_bytes(blob)
 
 
 def default_entropy():
