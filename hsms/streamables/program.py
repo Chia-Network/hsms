@@ -3,7 +3,7 @@ import io
 
 from typing import Any
 
-from clvm import run_program, SExp, EvalError
+from clvm import run_program, CLVMObject, SExp, EvalError
 from clvm.operators import OPERATOR_LOOKUP, OperatorDict  # noqa
 from clvm.serialize import sexp_from_stream, sexp_to_stream
 

@@ -5,9 +5,13 @@ import blspy
 from hsms.streamables import bytes32
 
 from hsms.util.std_hash import std_hash
+from hsms.util.bech32 import bech32_decode, bech32_encode, Encoding
 
 from .BLSSignature import BLSSignature
 from .BLSPublicKey import BLSPublicKey
+
+
+BECH32M_PREFIX = "se"
 
 GROUP_ORDER = (
     52435875175126190479447740508185965837690552500527637822603658699938581184513
@@ -58,6 +62,20 @@ class BLSSecretExponent:
         return BLSSecretExponent(
             blspy.AugSchemeMPL.derive_child_sk_unhardened(self._sk, index)
         )
+
+    def as_bech32m(self):
+        return bech32_encode(BECH32M_PREFIX, bytes(self), Encoding.BECH32M)
+
+    @classmethod
+    def from_bech32m(cls, text: str) -> "BLSSecretExponent":
+        prefix, base8_data, encoding = bech32_decode(text)
+        if (
+            encoding != Encoding.BECH32M
+            or prefix != BECH32M_PREFIX
+            or len(base8_data) != 33
+        ):
+            raise ValueError("not a valid secret exponent")
+        return cls.from_bytes(base8_data[:32])
 
     def __add__(self, other):
         return self.from_int(int(self) + int(other))

@@ -54,8 +54,8 @@ def find_secret_key_for_signing_request(
 
 
 def generate_signature(
-    signing_request: SigningRequest,
     wallet: Dict[int, BLSSecretExponent],
+    signing_request: SigningRequest,
 ) -> Optional[BLSSignature]:
     secret_key = find_secret_key_for_signing_request(wallet, signing_request)
     if secret_key:
@@ -81,7 +81,7 @@ def main():
     wallet = trivial_wallet()
     signing_request_pipeline = create_signing_request_pipeline(sys.stdin)
     for signing_request in signing_request_pipeline:
-        signature = generate_signature(signing_request, wallet)
+        signature = generate_signature(wallet, signing_request)
         if signature:
             encoded_sig = binascii.b2a_base64(bytes(signature)).decode()
             print(encoded_sig)

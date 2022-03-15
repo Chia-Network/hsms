@@ -1,5 +1,10 @@
 import blspy
 
+from hsms.util.bech32 import bech32_decode, bech32_encode, Encoding
+
+
+BECH32M_PREFIX = "bls1238"
+
 
 class BLSPublicKey:
     def __init__(self, g1: blspy.G1Element):
@@ -22,6 +27,21 @@ class BLSPublicKey:
     def __add__(self, other):
         return BLSPublicKey(self._g1 + other._g1)
 
+    def __mul__(self, other):
+        if other == 0:
+            return self.zero()
+        if other == 1:
+            return self
+        parity = other & 1
+        v = self.__mul__(other >> 1)
+        v += v
+        if parity:
+            v += self
+        return v
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
     def __eq__(self, other):
         return bytes(self) == bytes(other)
 
@@ -35,6 +55,20 @@ class BLSPublicKey:
 
     def fingerprint(self):
         return self._g1.get_fingerprint()
+
+    def as_bech32m(self):
+        return bech32_encode(BECH32M_PREFIX, bytes(self), Encoding.BECH32M)
+
+    @classmethod
+    def from_bech32m(cls, text: str) -> "BLSPublicKey":
+        prefix, base8_data, encoding = bech32_decode(text, max_length=91)
+        if (
+            encoding != Encoding.BECH32M
+            or prefix != BECH32M_PREFIX
+            or len(base8_data) != 49
+        ):
+            raise ValueError("not bls12_381 bech32m pubkey")
+        return cls.from_bytes(base8_data[:48])
 
     def __str__(self):
         return bytes(self._g1).hex()
