@@ -37,11 +37,6 @@ class BLSSecretExponent:
     def from_bytes(cls, blob) -> "BLSSecretExponent":
         return cls(blspy.PrivateKey.from_bytes(blob))
 
-    @classmethod
-    def from_bytes_clamp(cls, blob) -> "BLSSecretExponent":
-        secret_exponent = int.from_bytes(blob, "big")
-        return cls.from_int(secret_exponent)
-
     def fingerprint(self) -> int:
         return self._sk.get_g1().get_fingerprint()
 

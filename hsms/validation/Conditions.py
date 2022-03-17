@@ -1,5 +1,7 @@
 import enum
 
+from clvm.casts import int_from_bytes
+
 from clvm_tools import binutils
 
 from hsms.streamables import Program
@@ -63,13 +65,17 @@ def make_assert_time_exceeds_condition(time):
     return [ConditionOpcode.ASSERT_TIME_EXCEEDS, time]
 
 
+def iter_program(program):
+    while program.pair:
+        yield program.pair[0]
+        program = program.pair[1]
+
+
 def conditions_by_opcode(conditions):
-    opcodes = sorted(set([_[0] for _ in conditions if len(_) > 0]))
     d = {}
-    for _ in opcodes:
-        d[_] = list()
-    for _ in conditions:
-        d[_[0]].append(_)
+    for _ in iter_program(conditions):
+        if _.pair:
+            d.setdefault(int_from_bytes(_.pair[0].atom), []).append(_)
     return d
 
 

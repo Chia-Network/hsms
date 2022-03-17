@@ -80,7 +80,9 @@ def calculate_synthetic_offset(
     public_key: BLSPublicKey, hidden_puzzle_hash: bytes32
 ) -> BLSSecretExponent:
     blob = hashlib.sha256(bytes(public_key) + hidden_puzzle_hash).digest()
-    return BLSSecretExponent.from_bytes_clamp(blob)
+    offset = Program.to(blob).as_int()
+    assert offset == int(Program.to(blob))
+    return BLSSecretExponent.from_int(offset)
 
 
 def calculate_synthetic_public_key(

@@ -25,7 +25,7 @@ from hsms.bls12_381 import BLSPublicKey, BLSSecretExponent
 
 
 def _key_for_index(
-    index, public_keys: BLSPublicKey, secret_exponents: BLSSecretExponent
+    index, public_keys: List[BLSPublicKey], secret_exponents: List[BLSSecretExponent]
 ) -> Union[BLSPublicKey, BLSSecretExponent]:
     if index < 0:
         return secret_exponents[-1 - index]

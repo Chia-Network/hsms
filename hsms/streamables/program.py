@@ -48,7 +48,7 @@ class Program(SExp, bin_methods):
         return self
 
     def __int__(self) -> int:
-        return int_from_bytes(self)
+        return int_from_bytes(self.atom)
 
     def tree_hash(self):
         if self.listp():

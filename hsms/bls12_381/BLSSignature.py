@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import blspy
 
@@ -55,12 +55,11 @@ class BLSSignature:
         return "<%s: %s>" % (self.__class__.__name__, self)
 
     def validate(self, hash_key_pairs: List[aggsig_pair]) -> bool:
-        # check for special case of 0
-        if len(hash_key_pairs) == 0:
-            return True
+        return self.verify([_.public_key, _.message_hash] for _ in hash_key_pairs)
 
-        public_keys: List[blspy.G1Element] = [_.public_key._g1 for _ in hash_key_pairs]
-        message_hashes: List[bytes32] = [_.message_hash for _ in hash_key_pairs]
+    def verify(self, hash_key_pairs: List[Tuple[BLSPublicKey, bytes32]]) -> bool:
+        public_keys: List[blspy.G1Element] = [_[0]._g1 for _ in hash_key_pairs]
+        message_hashes: List[bytes32] = [_[1] for _ in hash_key_pairs]
 
         return blspy.AugSchemeMPL.aggregate_verify(
             public_keys, message_hashes, self._g2

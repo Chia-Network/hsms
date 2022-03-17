@@ -9,7 +9,7 @@ from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
 from hsms.streamables import Coin, CoinSpend
 from hsms.streamables.key_metadata import KeyMetadata
 
-from hsms.puzzles.conlang import AGG_SIG_ME
+from hsms.puzzles.conlang import CREATE_COIN
 
 
 DEFAULT_HIDDEN_PUZZLE_HASH = DEFAULT_HIDDEN_PUZZLE.tree_hash()
@@ -41,6 +41,9 @@ def test_lifecycle():
         puzzle_for_public_key_and_hidden_puzzle(pk, DEFAULT_HIDDEN_PUZZLE)
         for pk in sum_pks
     ]
+    synthetic_se_list = [
+        calculate_synthetic_offset(pk, DEFAULT_HIDDEN_PUZZLE_HASH) for pk in sum_pks
+    ]
 
     COIN_MAX = 1000000
 
@@ -59,7 +62,8 @@ def test_lifecycle():
     ]
 
     conditions_for_spends = [
-        [[AGG_SIG_ME, dph, coin.amount]] for dph, coin in zip(dest_puzzle_hashes, coins)
+        [[CREATE_COIN, dph, coin.amount]]
+        for dph, coin in zip(dest_puzzle_hashes, coins)
     ]
     solutions = [
         solution_for_conditions(conditions) for conditions in conditions_for_spends
@@ -71,15 +75,11 @@ def test_lifecycle():
     # then reconstruct using the signing request + the signatures
     # and generate a `SpendBundle`
 
-    synthetic_se_list = [
-        calculate_synthetic_offset(pk, DEFAULT_HIDDEN_PUZZLE_HASH) for pk in sum_pks
-    ]
     sums_hints = {
-        sum_pk: [a_pk, b_pk, synthetic_se]
-        for sum_pk, a_pk, b_pk, synthetic_se in zip(
-            sum_pks, pks_A, pks_B, synthetic_se_list
-        )
+        a_pk + b_pk + synthetic_se.public_key(): [a_pk, b_pk, synthetic_se]
+        for a_pk, b_pk, synthetic_se in zip(pks_A, pks_B, synthetic_se_list)
     }
+
     pk_A = se_A.public_key()
     path_hints_a = {pk: (pk_A, path) for pk, path in zip(pks_A, A_PATHS)}
     pk_B = se_B.public_key()
@@ -88,3 +88,14 @@ def test_lifecycle():
 
     print(sums_hints)
     print(path_hints)
+
+    from hsms.process.zz import USB
+
+    agg_sig_me_network_suffix = b"0" * 32
+    pst = USB(coin_spends, sums_hints, path_hints, agg_sig_me_network_suffix)
+
+    signatures_A = pst.sign([se_A])
+    print(signatures_A)
+
+    signatures_B = pst.sign([se_B])
+    print(signatures_B)
