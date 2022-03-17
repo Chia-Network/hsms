@@ -1,6 +1,7 @@
 from typing import Any, Callable, Dict, List, Tuple, Union
 
 from clvm import CLVMObject
+from clvm.casts import int_from_bytes
 
 from hsms.atoms import hexbytes
 
@@ -54,23 +55,13 @@ def cbor_struct_to_bytes(s: RecursiveStruct) -> bytes:
     return remap(s, to_bytes)
 
 
-def transform_list(
-    item_list: List[Any], item_transformation_f: Callable[[Any], Any]
-) -> List[Any]:
-    r = []
-    while item_list.pair:
-        this_item, item_list = item_list.pair
-        r.append(item_transformation_f(this_item))
-    return r
-
-
 def xform_clvm_list(item_transformation_f):
     """
     Return a function that transforms a list of items by calling
     item_xform(_) on each element _ in the list.
     """
 
-    return lambda clvm_list: transform_list(clvm_list, item_transformation_f)
+    return lambda clvm_list: clvm_to_list(clvm_list, item_transformation_f)
 
 
 def transform_dict(program, dict_transformer_f):
@@ -80,7 +71,7 @@ def transform_dict(program, dict_transformer_f):
     by invoking the corresponding values in xformer.
     """
     try:
-        r = transform_list(
+        r = clvm_to_list(
             program, lambda x: dict_transformer_f(x.pair[0], x.pair[1].pair[0])
         )
     except Exception as ex:
@@ -114,3 +105,53 @@ def transform_by_key(
 
 def transform_dict_by_key(transformation_lookup: Callable[[CLVMObject], Any]):
     return lambda k, v: transform_by_key(k, v, transformation_lookup)
+
+
+def transform_as_struct(items: CLVMObject, *struct_transformers) -> List[Any]:
+    r = []
+    for f in struct_transformers:
+        r.append(f(items.pair[0]))
+        items = items.pair[1]
+    return tuple(r)
+
+
+T = Any
+
+
+def clvm_to_list(
+    item_list: CLVMObject, item_transformation_f: Callable[[CLVMObject], T]
+) -> List[T]:
+    r = []
+    while item_list.pair:
+        this_item, item_list = item_list.pair
+        r.append(item_transformation_f(this_item))
+    return r
+
+
+def clvm_list_of_bytes_to_list(
+    items: CLVMObject, from_bytes_f: Callable[[bytes], T]
+) -> List[T]:
+    return clvm_to_list(items, lambda obj: from_bytes_f(obj.atom))
+
+
+def clvm_list_of_ints_to_list(
+    items: CLVMObject, from_int_f: Callable[[int], T] = lambda x: x
+) -> List[T]:
+    return clvm_to_list(items, lambda obj: from_int_f(int_from_bytes(obj.atom)))
+
+
+K = Any
+V = Any
+
+
+def clvm_list_to_dict(
+    items: CLVMObject,
+    from_clvm_f_to_kv: Callable[[CLVMObject, CLVMObject], Tuple[K, V]],
+) -> Dict[K, V]:
+    r = clvm_to_list(items, lambda obj: from_clvm_f_to_kv(obj.pair[0], obj.pair[1]))
+    return dict(r)
+
+
+# TODO: remove these
+
+transform_list = clvm_to_list

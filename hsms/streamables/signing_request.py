@@ -4,7 +4,7 @@ from typing import List, Optional
 from clvm.casts import int_from_bytes
 
 from hsms.streamables import bytes32, Program
-from hsms.bls12_381 import BLSPublicKey
+from hsms.bls12_381 import BLSPublicKey, BLSSecretExponent
 from hsms.util.clvm_serialization import (
     transform_list,
     transform_dict,

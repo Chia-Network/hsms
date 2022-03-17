@@ -4,6 +4,7 @@ import io
 from typing import Any
 
 from clvm import run_program, CLVMObject, SExp, EvalError
+from clvm.casts import int_from_bytes
 from clvm.operators import OPERATOR_LOOKUP, OperatorDict  # noqa
 from clvm.serialize import sexp_from_stream, sexp_to_stream
 
@@ -38,6 +39,16 @@ class Program(SExp, bin_methods):
 
     def __str__(self) -> str:
         return bytes(self).hex()
+
+    @classmethod
+    def from_clvm(cls, node: CLVMObject) -> "Program":
+        return Program(node.pair or node.atom)
+
+    def to_clvm(self) -> CLVMObject:
+        return self
+
+    def __int__(self) -> int:
+        return int_from_bytes(self)
 
     def tree_hash(self):
         if self.listp():
@@ -78,17 +89,3 @@ class Program(SExp, bin_methods):
     def curry(self, *args) -> "Program":
         cost, r = curry(self, list(args))
         return Program.to(r)
-
-
-class ProgramPointer(bytes32):
-
-    the_hash: bytes32
-
-    def __new__(cls, v):
-        if isinstance(v, SExp):
-            v = Program(v).tree_hash()
-        return bytes32.__new__(cls, v)
-
-
-# we actually want the revealed name to be ProgramPointer for some reason
-ProgramHash = ProgramPointer

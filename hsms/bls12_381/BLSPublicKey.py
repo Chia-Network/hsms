@@ -1,7 +1,9 @@
+from typing import List
+
 import blspy
 
+from hsms.atoms.hexbytes import hexbytes
 from hsms.util.bech32 import bech32_decode, bech32_encode, Encoding
-
 
 BECH32M_PREFIX = "bls1238"
 
@@ -46,12 +48,18 @@ class BLSPublicKey:
         return bytes(self) == bytes(other)
 
     def __bytes__(self) -> bytes:
-        return bytes(self._g1)
+        return hexbytes(self._g1)
 
     def child(self, index: int) -> "BLSPublicKey":
         return BLSPublicKey(
             blspy.AugSchemeMPL.derive_child_pk_unhardened(self._g1, index)
         )
+
+    def child_for_path(self, path: List[int]) -> "BLSPublicKey":
+        r = self
+        for index in path:
+            r = self.child(index)
+        return r
 
     def fingerprint(self):
         return self._g1.get_fingerprint()
@@ -70,8 +78,11 @@ class BLSPublicKey:
             raise ValueError("not bls12_381 bech32m pubkey")
         return cls.from_bytes(base8_data[:48])
 
+    def __hash__(self):
+        return bytes(self).__hash__()
+
     def __str__(self):
-        return bytes(self._g1).hex()
+        return self.as_bech32m()
 
     def __repr__(self):
         return "<%s: %s>" % (self.__class__.__name__, self)

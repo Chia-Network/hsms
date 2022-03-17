@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 import blspy
 
@@ -37,6 +37,11 @@ class BLSSecretExponent:
     def from_bytes(cls, blob) -> "BLSSecretExponent":
         return cls(blspy.PrivateKey.from_bytes(blob))
 
+    @classmethod
+    def from_bytes_clamp(cls, blob) -> "BLSSecretExponent":
+        secret_exponent = int.from_bytes(blob, "big")
+        return cls.from_int(secret_exponent)
+
     def fingerprint(self) -> int:
         return self._sk.get_g1().get_fingerprint()
 
@@ -62,6 +67,12 @@ class BLSSecretExponent:
         return BLSSecretExponent(
             blspy.AugSchemeMPL.derive_child_sk_unhardened(self._sk, index)
         )
+
+    def child_for_path(self, path: List[int]) -> "BLSPublicKey":
+        r = self
+        for index in path:
+            r = self.child(index)
+        return r
 
     def as_bech32m(self):
         return bech32_encode(BECH32M_PREFIX, bytes(self), Encoding.BECH32M)
