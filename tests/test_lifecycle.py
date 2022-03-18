@@ -81,7 +81,7 @@ def test_lifecycle():
     # then reconstruct using the signing request + the signatures
     # and generate a `SpendBundle`
 
-    sums_hints = {
+    sum_hints = {
         a_pk + b_pk + synthetic_se.public_key(): [a_pk, b_pk, synthetic_se]
         for a_pk, b_pk, synthetic_se in zip(pks_A, pks_B, synthetic_se_list)
     }
@@ -92,20 +92,22 @@ def test_lifecycle():
     path_hints_b = {pk: (pk_B, path) for pk, path in zip(pks_B, B_PATHS)}
     path_hints = path_hints_a | path_hints_b
 
-    print(sums_hints)
+    print(sum_hints)
     print(path_hints)
 
     agg_sig_me_network_suffix = AGG_SIG_ME_ADDITIONAL_DATA
-    pst = UnsignedSpend(coin_spends, sums_hints, path_hints, agg_sig_me_network_suffix)
+    pst = UnsignedSpend(coin_spends, sum_hints, path_hints, agg_sig_me_network_suffix)
+
+    from hsms.process.sign import sign, sign_extra
 
     print("-" * 10)
-    signatures_A = pst.sign([se_A])
+    signatures_A = sign(pst, [se_A])
     print(signatures_A)
 
-    signatures_B = pst.sign([se_B])
+    signatures_B = sign(pst, [se_B])
     print(signatures_B)
 
-    extra_signatures = pst.sign_extra()
+    extra_signatures = sign_extra(pst)
     print(extra_signatures)
 
     # now let's try adding them all together and creating a `SpendBundle`

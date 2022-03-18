@@ -5,7 +5,7 @@ from clvm_tools.binutils import disassemble as bu_disassemble
 
 from hsms.streamables import Coin, Program
 from hsms.util.std_hash import std_hash
-from hsms.process.unsigned_spend import generate_verify_pairs
+from hsms.process.sign import generate_verify_pairs
 from hsms.puzzles import conlang
 from hsms.validation.Conditions import conditions_by_opcode
 
