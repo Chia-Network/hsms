@@ -6,7 +6,7 @@ license = "MIT"
 repository = "https://github.com/richardkiss/chiaswap.git"
 readme = "README.md"
 src_root = "."
-dependencies = ["blspy", "segno"]
+dependencies = ["blspy==1.0.9", "segno==1.4.1", "clvm==0.9.7", "clvm_tools==0.4.4", "clvm_tools_rs==0.1.7"]
 packages = ["hsms"]
 # version is defined with `setuptools_scm`. See `SConstruct` file.
 
