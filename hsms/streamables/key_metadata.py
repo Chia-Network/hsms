@@ -55,11 +55,6 @@ class KeyMetadata:
                 return key.public_key()
             return key
 
-        t1 = [
-            (lookup.get(k), (lookup.get(v[0]), v[1]))
-            for k, v in self.path_hints.items()
-        ]
-
         return [
             [bytes(_) for _ in self.public_keys],
             [int(_) for _ in self.secret_exponents],

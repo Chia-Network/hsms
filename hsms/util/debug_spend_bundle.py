@@ -3,7 +3,6 @@ from typing import List
 from clvm import KEYWORD_FROM_ATOM
 from clvm_tools.binutils import disassemble as bu_disassemble
 
-from hsms.bls12_381 import BLSPublicKey
 from hsms.streamables import Coin, Program
 from hsms.util.std_hash import std_hash
 from hsms.process.unsigned_spend import generate_verify_pairs

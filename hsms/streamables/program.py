@@ -12,8 +12,6 @@ from clvm_tools.curry import curry
 
 from hsms.atoms import bin_methods
 
-from . import bytes32
-
 
 class Program(SExp, bin_methods):
     """

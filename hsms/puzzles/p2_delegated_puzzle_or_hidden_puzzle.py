@@ -97,7 +97,7 @@ def calculate_synthetic_secret_key(
 ) -> BLSSecretExponent:
     public_key = secret_key.public_key()
     synthetic_offset = calculate_synthetic_offset(public_key, hidden_puzzle_hash)
-    synthetic_secret_exponent = secret_exponent + synthetic_offset
+    synthetic_secret_exponent = int(secret_key) + synthetic_offset
     synthetic_secret_key = BLSSecretExponent.from_int(synthetic_secret_exponent)
     return synthetic_secret_key
 

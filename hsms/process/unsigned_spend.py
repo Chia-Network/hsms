@@ -16,11 +16,15 @@ class SignatureInfo:
     message: bytes
 
 
+SumHints = Dict[BLSPublicKey, List[Union[BLSPublicKey, BLSSecretExponent]]]
+PathHints = Dict[BLSPublicKey, Tuple[BLSPublicKey, List[int]]]
+
+
 @dataclass
 class UnsignedSpend:
     coin_spends: List[CoinSpend]
-    sums_hints: Dict[BLSPublicKey, List[Union[BLSPublicKey, BLSSecretExponent]]]
-    path_hints: Dict[BLSPublicKey, Tuple[BLSPublicKey, List[int]]]
+    sums_hints: SumHints
+    path_hints: PathHints
     agg_sig_me_network_suffix: bytes32
 
     def sign(self, secrets: List[BLSSecretExponent]) -> List[SignatureInfo]:
