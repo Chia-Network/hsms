@@ -42,11 +42,16 @@ def test_lifecycle():
     pks_A = [se_A.child_for_path(_).public_key() for _ in A_PATHS]
     pks_B = [se_B.child_for_path(_).public_key() for _ in B_PATHS]
 
+    # create "sum public keys" that are the sum of pubkeys from each of A and B
     sum_pks = [a + b for a, b in zip(pks_A, pks_B)]
+
+    # create a standard puzzle using the sum public keys
     puzzles = [
         puzzle_for_public_key_and_hidden_puzzle(pk, DEFAULT_HIDDEN_PUZZLE)
         for pk in sum_pks
     ]
+
+    # work out the synthentic private keys as we'll need it later to finish the signing
     synthetic_se_list = [
         calculate_synthetic_offset(pk, DEFAULT_HIDDEN_PUZZLE_HASH) for pk in sum_pks
     ]
@@ -62,7 +67,7 @@ def test_lifecycle():
         for idx, puzzle in enumerate(puzzles)
     ]
 
-    # these are nonsense puzzle hashes, but that's okay
+    # the destination puzzle hashes are nonsense, but that's okay
     dest_puzzle_hashes = [
         bytes32_generate(idx, "dest") for idx, _ in enumerate(puzzles)
     ]
@@ -76,27 +81,41 @@ def test_lifecycle():
     ]
     coin_spends = [CoinSpend(*triple) for triple in zip(coins, puzzles, solutions)]
 
-    sum_hints = {
+    # create the "sum hints" which give information on how the public keys that appear in
+    # the `AGG_SIG_ME` conditions were constructed
+
+    sum_hint_lookup = {
         a_pk + b_pk + synthetic_se.public_key(): ([a_pk, b_pk], synthetic_se)
         for a_pk, b_pk, synthetic_se in zip(pks_A, pks_B, synthetic_se_list)
     }
 
-    pk_A = se_A.public_key()
-    path_hints_a = {pk: (pk_A, path) for pk, path in zip(pks_A, A_PATHS)}
-    pk_B = se_B.public_key()
-    path_hints_b = {pk: (pk_B, path) for pk, path in zip(pks_B, B_PATHS)}
-    path_hints = path_hints_a | path_hints_b
+    # create the "path hints" which give information on how to get from the root public key
+    # to the public keys used as inputs to the sum keys
+    #
+    # If the public key is also the root public key, you don't need this hint
 
-    print(sum_hints)
-    print(path_hints)
+    pk_A = se_A.public_key()
+    path_hint_lookup_a = {pk: (pk_A, path) for pk, path in zip(pks_A, A_PATHS)}
+    pk_B = se_B.public_key()
+    path_hint_lookup_b = {pk: (pk_B, path) for pk, path in zip(pks_B, B_PATHS)}
+
+    path_hint_lookup = path_hint_lookup_a | path_hint_lookup_b
+
+    print(sum_hint_lookup)
+    print(path_hint_lookup)
 
     unsigned_spend = UnsignedSpend(
-        coin_spends, sum_hints, path_hints, AGG_SIG_ME_ADDITIONAL_DATA
+        coin_spends, sum_hint_lookup, path_hint_lookup, AGG_SIG_ME_ADDITIONAL_DATA
     )
 
     print("-" * 10)
+
+    # this simulates giving the `UnsignedSpend` to A and getting signatures back
+
     signatures_A = sign(unsigned_spend, [se_A])
     print(signatures_A)
+
+    # this simulates giving the `UnsignedSpend` to B and getting signatures back
 
     signatures_B = sign(unsigned_spend, [se_B])
     print(signatures_B)
@@ -114,6 +133,7 @@ def create_spend_bundle(unsigned_spend, signatures):
     extra_signatures = generate_synthetic_offset_signatures(unsigned_spend)
 
     # now let's try adding them all together and creating a `SpendBundle`
+
     all_signatures = [sig_info.signature for sig_info in signatures + extra_signatures]
     total_signature = sum(all_signatures, start=all_signatures[0].zero())
 

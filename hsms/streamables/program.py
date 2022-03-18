@@ -1,7 +1,7 @@
 import hashlib
 import io
 
-from typing import Any
+from typing import Any, Iterable, Tuple
 
 from clvm import run_program, CLVMObject, SExp, EvalError
 from clvm.casts import int_from_bytes
@@ -10,7 +10,7 @@ from clvm.serialize import sexp_from_stream, sexp_to_stream
 
 from clvm_tools.curry import curry
 
-from hsms.atoms import bin_methods
+from hsms.atoms import bin_methods, hexbytes
 
 
 class Program(SExp, bin_methods):
@@ -58,12 +58,12 @@ class Program(SExp, bin_methods):
             s = b"\1" + atom
         return hashlib.sha256(s).digest()
 
-    def run(
+    def run_with_cost(
         self,
         args,
         max_cost=None,
         strict=False,
-    ) -> "Program":
+    ) -> Tuple[int, "Program"]:
         operator_lookup = OPERATOR_LOOKUP
         prog_args = Program.to(args)
         if strict:
@@ -82,7 +82,27 @@ class Program(SExp, bin_methods):
             max_cost,
         )
 
-        return Program.to(r)
+        return cost, Program.to(r)
+
+    def run(self, args, max_cost=None, strict=False):
+        return self.run_with_cost(args, max_cost, strict)[1]
+
+    def as_atom_list(self) -> Iterable[hexbytes]:
+        """
+        Pretend `self` is a list of atoms. Return the corresponding
+        python list of atoms.
+
+        At each step, we always assume a node to be an atom or a pair.
+        If the assumption is wrong, we exit early. This way we never fail
+        and always return SOMETHING.
+        """
+        obj = self
+        while obj.pair:
+            first, obj = obj.pair
+            atom = first.atom
+            if atom is None:
+                break
+            yield hexbytes(atom)
 
     def curry(self, *args) -> "Program":
         cost, r = curry(self, list(args))

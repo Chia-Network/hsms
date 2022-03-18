@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from typing import Dict, List, Union, Tuple
+from typing import List
 
-from hsms.bls12_381 import BLSPublicKey, BLSSecretExponent, BLSSignature
+from hsms.bls12_381 import BLSPublicKey, BLSSignature
 from hsms.streamables import bytes32, CoinSpend
 
 from .signing_hints import SumHints, PathHints

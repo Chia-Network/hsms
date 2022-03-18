@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Optional, Union, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 from hsms.atoms.hexbytes import hexbytes
 from hsms.bls12_381 import BLSPublicKey, BLSSecretExponent
@@ -27,43 +27,31 @@ def sign_for_coin_spend(
     us: UnsignedSpend, coin_spend: CoinSpend, secrets: List[BLSSecretExponent]
 ) -> List[SignatureInfo]:
     conditions = conditions_for_coin_spend(coin_spend)
+    agg_sig_me_message_suffix = coin_spend.coin.name() + us.agg_sig_me_network_suffix
     sigs = []
-    for public_key, message in generate_verify_pairs(
-        coin_spend, us.agg_sig_me_network_suffix
+    for signature_metadata in partial_signature_metadata_for_hsm(
+        conditions, us.sum_hints, us.path_hints, agg_sig_me_message_suffix
     ):
-        more_sigs = sign_for_public_key_and_message(us, public_key, message, secrets)
-        sigs.extend(more_sigs)
-    return sigs
-
-
-def sign_for_public_key_and_message(
-    us: UnsignedSpend, final_public_key, message, secrets: List[BLSSecretExponent]
-) -> List[SignatureInfo]:
-    sum_hints = us.sum_hints.get(
-        final_public_key, ([final_public_key], BLSSecretExponent.zero())
-    )
-
-    sig_infos = []
-
-    for partial_public_key in sum_hints[0]:
+        partial_public_key = signature_metadata.partial_public_key
+        final_public_key = signature_metadata.final_public_key
+        message = signature_metadata.message
         root_public_key, path = us.path_hints.get(
             partial_public_key, (partial_public_key, [])
         )
-
         secret_key = secret_key_for_public_key(
             secrets, path, root_public_key, partial_public_key
         )
         if secret_key is None:
             continue
-
-        signature = secret_key.sign(message, final_public_key)
-        if final_public_key == root_public_key:
-            assert signature.verify([(partial_public_key, message)])
         sig_info = SignatureInfo(
-            signature, partial_public_key, final_public_key, message
+            secret_key.sign(message, final_public_key),
+            partial_public_key,
+            final_public_key,
+            message,
         )
-        sig_infos.append(sig_info)
-    return sig_infos
+
+        sigs.append(sig_info)
+    return sigs
 
 
 def generate_synthetic_offset_signatures(us: UnsignedSpend) -> List[SignatureInfo]:
@@ -86,23 +74,6 @@ def generate_synthetic_offset_signatures(us: UnsignedSpend) -> List[SignatureInf
     return sig_infos
 
 
-def as_atom_list(obj) -> Iterable[hexbytes]:
-    """
-    Pretend `obj` is a list of atoms. Return the corresponding
-    python list of atoms.
-
-    At each step, we always assume a node to be an atom or a pair.
-    If the assumption is wrong, we exit early. This way we never fail
-    and always return SOMETHING.
-    """
-    while obj.pair:
-        first, obj = obj.pair
-        atom = first.atom
-        if atom is None:
-            break
-        yield hexbytes(atom)
-
-
 def generate_verify_pairs(
     coin_spend: CoinSpend, agg_sig_me_network_suffix
 ) -> Iterable[Tuple[BLSPublicKey, bytes]]:
@@ -118,14 +89,14 @@ def verify_pairs_for_conditions(
 
     agg_sig_me_conditions = d.get(AGG_SIG_ME, [])
     for condition in agg_sig_me_conditions:
-        condition = list(as_atom_list(condition))
+        condition = list(condition.as_atom_list())
         yield BLSPublicKey.from_bytes(condition[1]), hexbytes(
             condition[2] + agg_sig_me_message_suffix
         )
 
     agg_sig_unsafe_conditions = d.get(AGG_SIG_UNSAFE, [])
     for condition in agg_sig_unsafe_conditions:
-        condition = list(as_atom_list(condition))
+        condition = list(condition.as_atom_list())
         yield BLSPublicKey.from_bytes(condition[1]), condition[2]
 
 
