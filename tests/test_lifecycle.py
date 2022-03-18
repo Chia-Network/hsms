@@ -6,10 +6,14 @@ from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     solution_for_conditions,
     calculate_synthetic_offset,
 )
-from hsms.streamables import Coin, CoinSpend
+from hsms.streamables import Coin, CoinSpend, SpendBundle
 from hsms.streamables.key_metadata import KeyMetadata
 
 from hsms.puzzles.conlang import CREATE_COIN
+
+AGG_SIG_ME_ADDITIONAL_DATA = bytes.fromhex(
+    "ccd5bb71183532bff220ba46c268991a3ff07eb358e8255a65c30a2dce0e5fbb"
+)
 
 
 DEFAULT_HIDDEN_PUZZLE_HASH = DEFAULT_HIDDEN_PUZZLE.tree_hash()
@@ -91,11 +95,31 @@ def test_lifecycle():
 
     from hsms.process.zz import USB
 
-    agg_sig_me_network_suffix = b"0" * 32
+    agg_sig_me_network_suffix = AGG_SIG_ME_ADDITIONAL_DATA
     pst = USB(coin_spends, sums_hints, path_hints, agg_sig_me_network_suffix)
 
+    print("-" * 10)
     signatures_A = pst.sign([se_A])
     print(signatures_A)
 
     signatures_B = pst.sign([se_B])
     print(signatures_B)
+
+    extra_signatures = pst.sign_extra()
+    print(extra_signatures)
+
+    # now let's try adding them all together and creating a `SpendBundle`
+    all_signatures = [
+        sig_info.signature
+        for sig_infos in [signatures_A, signatures_B, extra_signatures]
+        for sig_info in sig_infos
+    ]
+    total_signature = sum(all_signatures, start=all_signatures[0].zero())
+    print(total_signature)
+
+    spend_bundle = SpendBundle(coin_spends, total_signature)
+    print(bytes(spend_bundle))
+
+    from hsms.util.debug_spend_bundle import debug_spend_bundle
+
+    debug_spend_bundle(spend_bundle)

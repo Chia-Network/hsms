@@ -5,3 +5,4 @@ from .coin_spend import CoinSpend  # noqa
 from .program import Program  # noqa
 
 from .signing_request import PathHint, SigningRequest  # noqa
+from .spend_bundle import SpendBundle  # noqa
