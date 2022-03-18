@@ -7,11 +7,12 @@ from hsms.streamables import bytes32, CoinSpend, Program
 from hsms.validation.Conditions import conditions_by_opcode
 from hsms.puzzles.conlang import AGG_SIG_ME, AGG_SIG_UNSAFE
 
+from .signing_hints import SumHints, PathHints
 from .unsigned_spend import SignatureInfo, UnsignedSpend
 
-# TODO: refactor
-SumHints = Dict[BLSPublicKey, List[Union[BLSPublicKey, BLSSecretExponent]]]
-PathHints = Dict[BLSPublicKey, Tuple[BLSPublicKey, List[int]]]
+
+def conditions_for_coin_spend(coin_spend: CoinSpend) -> Program:
+    return coin_spend.puzzle_reveal.run(coin_spend.solution)
 
 
 def sign(us: UnsignedSpend, secrets: List[BLSSecretExponent]) -> List[SignatureInfo]:
@@ -23,8 +24,9 @@ def sign(us: UnsignedSpend, secrets: List[BLSSecretExponent]) -> List[SignatureI
 
 
 def sign_for_coin_spend(
-    us: UnsignedSpend, coin_spend: CoinSpend, secrets
+    us: UnsignedSpend, coin_spend: CoinSpend, secrets: List[BLSSecretExponent]
 ) -> List[SignatureInfo]:
+    conditions = conditions_for_coin_spend(coin_spend)
     sigs = []
     for public_key, message in generate_verify_pairs(
         coin_spend, us.agg_sig_me_network_suffix
@@ -35,16 +37,15 @@ def sign_for_coin_spend(
 
 
 def sign_for_public_key_and_message(
-    us: UnsignedSpend, final_public_key, message, secrets
+    us: UnsignedSpend, final_public_key, message, secrets: List[BLSSecretExponent]
 ) -> List[SignatureInfo]:
-    sum_hints = us.sum_hints.get(final_public_key, [final_public_key])
+    sum_hints = us.sum_hints.get(
+        final_public_key, ([final_public_key], BLSSecretExponent.zero())
+    )
 
     sig_infos = []
 
-    for pk_or_se in sum_hints:
-        if isinstance(pk_or_se, BLSSecretExponent):
-            continue
-        partial_public_key = pk_or_se
+    for partial_public_key in sum_hints[0]:
         root_public_key, path = us.path_hints.get(
             partial_public_key, (partial_public_key, [])
         )
@@ -65,7 +66,7 @@ def sign_for_public_key_and_message(
     return sig_infos
 
 
-def sign_extra(us: UnsignedSpend) -> List[SignatureInfo]:
+def generate_synthetic_offset_signatures(us: UnsignedSpend) -> List[SignatureInfo]:
     sig_infos = []
     for coin_spend in us.coin_spends:
         for final_public_key, message in generate_verify_pairs(
@@ -73,16 +74,15 @@ def sign_extra(us: UnsignedSpend) -> List[SignatureInfo]:
         ):
             sum_hints = us.sum_hints.get(final_public_key, [final_public_key])
 
-            for secret_key in sum_hints:
-                if isinstance(secret_key, BLSSecretExponent):
-                    partial_public_key = secret_key.public_key()
-                    signature = secret_key.sign(message, final_public_key)
-                    if final_public_key == partial_public_key:
-                        assert signature.verify([(partial_public_key, message)])
-                    sig_info = SignatureInfo(
-                        signature, partial_public_key, final_public_key, message
-                    )
-                    sig_infos.append(sig_info)
+            secret_key = sum_hints[1]
+            partial_public_key = secret_key.public_key()
+            signature = secret_key.sign(message, final_public_key)
+            if final_public_key == partial_public_key:
+                assert signature.verify([(partial_public_key, message)])
+            sig_info = SignatureInfo(
+                signature, partial_public_key, final_public_key, message
+            )
+            sig_infos.append(sig_info)
     return sig_infos
 
 
@@ -107,7 +107,7 @@ def generate_verify_pairs(
     coin_spend: CoinSpend, agg_sig_me_network_suffix
 ) -> Iterable[Tuple[BLSPublicKey, bytes]]:
     agg_sig_me_message_suffix = coin_spend.coin.name() + agg_sig_me_network_suffix
-    conditions = coin_spend.puzzle_reveal.run(coin_spend.solution)
+    conditions = conditions_for_coin_spend(coin_spend)
     yield from verify_pairs_for_conditions(conditions, agg_sig_me_message_suffix)
 
 
@@ -137,7 +137,7 @@ class SignatureMetadata:
 
 
 def secret_key_for_public_key(
-    secrets, path, root_public_key, public_key
+    secrets: List[BLSSecretExponent], path, root_public_key, public_key
 ) -> Optional[BLSSecretExponent]:
     for secret in secrets:
         if secret.public_key() == root_public_key:
@@ -147,7 +147,7 @@ def secret_key_for_public_key(
     return None
 
 
-def partial_signatures_for_hsm(
+def partial_signature_metadata_for_hsm(
     conditions: Program,
     sum_hints: SumHints,
     path_hints: PathHints,
@@ -158,10 +158,7 @@ def partial_signatures_for_hsm(
     ):
         sum_hints = sum_hints.get(final_public_key, [final_public_key])
 
-        for sum_hint in sum_hints:
-            if isinstance(sum_hint, BLSSecretExponent):
-                continue
-
+        for sum_hint in sum_hints[0]:
             partial_public_key = sum_hint
             metadata = SignatureMetadata(partial_public_key, final_public_key, message)
             yield metadata

@@ -7,8 +7,8 @@ from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     calculate_synthetic_offset,
 )
 from hsms.streamables import Coin, CoinSpend, SpendBundle
-from hsms.streamables.key_metadata import KeyMetadata
 from hsms.process.unsigned_spend import UnsignedSpend
+from hsms.process.sign import sign, generate_synthetic_offset_signatures
 from hsms.puzzles.conlang import CREATE_COIN
 from hsms.util.debug_spend_bundle import debug_spend_bundle
 
@@ -76,13 +76,8 @@ def test_lifecycle():
     ]
     coin_spends = [CoinSpend(*triple) for triple in zip(coins, puzzles, solutions)]
 
-    # now create a signing request
-    # let each of A and B sign their part
-    # then reconstruct using the signing request + the signatures
-    # and generate a `SpendBundle`
-
     sum_hints = {
-        a_pk + b_pk + synthetic_se.public_key(): [a_pk, b_pk, synthetic_se]
+        a_pk + b_pk + synthetic_se.public_key(): ([a_pk, b_pk], synthetic_se)
         for a_pk, b_pk, synthetic_se in zip(pks_A, pks_B, synthetic_se_list)
     }
 
@@ -95,32 +90,31 @@ def test_lifecycle():
     print(sum_hints)
     print(path_hints)
 
-    agg_sig_me_network_suffix = AGG_SIG_ME_ADDITIONAL_DATA
-    pst = UnsignedSpend(coin_spends, sum_hints, path_hints, agg_sig_me_network_suffix)
-
-    from hsms.process.sign import sign, sign_extra
+    unsigned_spend = UnsignedSpend(
+        coin_spends, sum_hints, path_hints, AGG_SIG_ME_ADDITIONAL_DATA
+    )
 
     print("-" * 10)
-    signatures_A = sign(pst, [se_A])
+    signatures_A = sign(unsigned_spend, [se_A])
     print(signatures_A)
 
-    signatures_B = sign(pst, [se_B])
+    signatures_B = sign(unsigned_spend, [se_B])
     print(signatures_B)
 
-    extra_signatures = sign_extra(pst)
-    print(extra_signatures)
-
-    # now let's try adding them all together and creating a `SpendBundle`
-    all_signatures = [
-        sig_info.signature
-        for sig_infos in [signatures_A, signatures_B, extra_signatures]
-        for sig_info in sig_infos
-    ]
-    total_signature = sum(all_signatures, start=all_signatures[0].zero())
-    print(total_signature)
-
-    spend_bundle = SpendBundle(coin_spends, total_signature)
+    signatures = signatures_A + signatures_B
+    spend_bundle = create_spend_bundle(unsigned_spend, signatures)
     print(bytes(spend_bundle))
 
     validates = debug_spend_bundle(spend_bundle)
     assert validates is True
+
+
+def create_spend_bundle(unsigned_spend, signatures):
+
+    extra_signatures = generate_synthetic_offset_signatures(unsigned_spend)
+
+    # now let's try adding them all together and creating a `SpendBundle`
+    all_signatures = [sig_info.signature for sig_info in signatures + extra_signatures]
+    total_signature = sum(all_signatures, start=all_signatures[0].zero())
+
+    return SpendBundle(unsigned_spend.coin_spends, total_signature)

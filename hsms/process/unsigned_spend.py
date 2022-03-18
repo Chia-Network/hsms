@@ -4,6 +4,8 @@ from typing import Dict, List, Union, Tuple
 from hsms.bls12_381 import BLSPublicKey, BLSSecretExponent, BLSSignature
 from hsms.streamables import bytes32, CoinSpend
 
+from .signing_hints import SumHints, PathHints
+
 
 @dataclass
 class SignatureInfo:
@@ -11,10 +13,6 @@ class SignatureInfo:
     partial_public_key: BLSPublicKey
     final_public_key: BLSPublicKey
     message: bytes
-
-
-SumHints = Dict[BLSPublicKey, List[Union[BLSPublicKey, BLSSecretExponent]]]
-PathHints = Dict[BLSPublicKey, Tuple[BLSPublicKey, List[int]]]
 
 
 @dataclass

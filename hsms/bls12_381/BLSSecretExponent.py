@@ -100,3 +100,8 @@ class BLSSecretExponent:
 
     def __repr__(self):
         return "<%s: %s>" % (self.__class__.__name__, self)
+
+
+ZERO = BLSSecretExponent.from_int(0)
+
+BLSSecretExponent.zero = lambda: ZERO
