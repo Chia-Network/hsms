@@ -17,7 +17,7 @@ class SignatureInfo:
 
 
 @dataclass
-class USB:
+class UnsignedSpend:
     coin_spends: List[CoinSpend]
     sums_hints: Dict[BLSPublicKey, List[Union[BLSPublicKey, BLSSecretExponent]]]
     path_hints: Dict[BLSPublicKey, Tuple[BLSPublicKey, List[int]]]

@@ -8,8 +8,10 @@ from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
 )
 from hsms.streamables import Coin, CoinSpend, SpendBundle
 from hsms.streamables.key_metadata import KeyMetadata
-
+from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.puzzles.conlang import CREATE_COIN
+from hsms.util.debug_spend_bundle import debug_spend_bundle
+
 
 AGG_SIG_ME_ADDITIONAL_DATA = bytes.fromhex(
     "ccd5bb71183532bff220ba46c268991a3ff07eb358e8255a65c30a2dce0e5fbb"
@@ -93,10 +95,8 @@ def test_lifecycle():
     print(sums_hints)
     print(path_hints)
 
-    from hsms.process.zz import USB
-
     agg_sig_me_network_suffix = AGG_SIG_ME_ADDITIONAL_DATA
-    pst = USB(coin_spends, sums_hints, path_hints, agg_sig_me_network_suffix)
+    pst = UnsignedSpend(coin_spends, sums_hints, path_hints, agg_sig_me_network_suffix)
 
     print("-" * 10)
     signatures_A = pst.sign([se_A])
@@ -120,6 +120,5 @@ def test_lifecycle():
     spend_bundle = SpendBundle(coin_spends, total_signature)
     print(bytes(spend_bundle))
 
-    from hsms.util.debug_spend_bundle import debug_spend_bundle
-
-    debug_spend_bundle(spend_bundle)
+    validates = debug_spend_bundle(spend_bundle)
+    assert validates is True
