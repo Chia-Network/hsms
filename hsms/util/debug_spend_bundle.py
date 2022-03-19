@@ -7,7 +7,7 @@ from hsms.streamables import Coin, Program
 from hsms.util.std_hash import std_hash
 from hsms.process.sign import generate_verify_pairs
 from hsms.puzzles import conlang
-from hsms.validation.Conditions import conditions_by_opcode
+from hsms.util.conditions import conditions_by_opcode
 
 KFA = {bytes([getattr(conlang, k)]): k for k in dir(conlang) if k[0] in "ACR"}
 
