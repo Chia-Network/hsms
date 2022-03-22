@@ -1,0 +1,106 @@
+import argparse
+import hashlib
+
+from hsms.bls12_381 import BLSPublicKey
+
+from hsms.process.signing_hints import SumHint, PathHint
+
+from tests.generate import se_generate, bytes32_generate, uint256_generate
+
+from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
+    DEFAULT_HIDDEN_PUZZLE,
+    puzzle_for_public_key_and_hidden_puzzle,
+    solution_for_conditions,
+    calculate_synthetic_offset,
+)
+from hsms.streamables import Coin, CoinSpend, Program, SpendBundle
+from hsms.process.unsigned_spend import UnsignedSpend
+from hsms.process.sign import sign, generate_synthetic_offset_signatures
+from hsms.puzzles.conlang import CREATE_COIN
+from hsms.util.debug_spend_bundle import debug_spend_bundle
+
+MAINNET_AGG_SIG_ME_ADDITIONAL_DATA = bytes.fromhex(
+    "ccd5bb71183532bff220ba46c268991a3ff07eb358e8255a65c30a2dce0e5fbb"
+)
+
+
+DEFAULT_HIDDEN_PUZZLE_HASH = DEFAULT_HIDDEN_PUZZLE.tree_hash()
+
+
+def hsm_test_spend(args, parser):
+    root_public_keys = [
+        BLSPublicKey.from_bech32m(_.readline()[:-1]) for _ in args.public_key_file
+    ]
+    print(root_public_keys)
+
+    paths = [[index] for index in range(len(root_public_keys))]
+
+    public_keys = [
+        root_key.child_for_path(path) for root_key, path in zip(root_public_keys, paths)
+    ]
+
+    # create "sum public keys" that are the sum of pubkeys from each of A and B
+    sum_pk = sum(public_keys, start=BLSPublicKey.zero())
+
+    # create a standard puzzle using the sum of the public keys
+    puzzle = puzzle_for_public_key_and_hidden_puzzle(sum_pk, DEFAULT_HIDDEN_PUZZLE)
+
+    # make the coin
+    FAKE_PARENT = hashlib.sha256(b"parent").digest()
+    coin = Coin(FAKE_PARENT, puzzle.tree_hash(), 1)
+
+    synthetic_secret_exponent = calculate_synthetic_offset(
+        sum_pk, DEFAULT_HIDDEN_PUZZLE_HASH
+    )
+
+    sum_hints = [SumHint(public_keys, synthetic_secret_exponent)]
+
+    path_hints = [
+        PathHint(root_key, path) for root_key, path in zip(root_public_keys, paths)
+    ]
+
+    # destination
+
+    conditions_for_spend = Program.to(["NO-OP"])
+    solution = solution_for_conditions(conditions_for_spend)
+
+    coin_spend = CoinSpend(coin, puzzle, solution)
+
+    # sum_hints = {_.final_public_key(): _ for _ in [sum_hints]}
+
+    # path_hints = {_.public_key(): _ for _ in path_hints}
+
+    unsigned_spend = UnsignedSpend(
+        [coin_spend], sum_hints, path_hints, MAINNET_AGG_SIG_ME_ADDITIONAL_DATA
+    )
+
+    b = bytes(unsigned_spend)
+    print(b.hex())
+
+    us = UnsignedSpend.from_bytes(b)
+    assert bytes(us) == b
+
+
+def create_parser():
+    parser = argparse.ArgumentParser(
+        description="Generate a `UnsignedSpend` test as a proof-of-concept"
+    )
+    parser.add_argument(
+        "public_key_file",
+        metavar="path-to-public-key",
+        nargs="+",
+        # default=[],
+        help="file containing a single bech32m-encoded public key",
+        type=argparse.FileType("r"),
+    )
+    return parser
+
+
+def main():
+    parser = create_parser()
+    args = parser.parse_args()
+    return hsm_test_spend(args, parser)
+
+
+if __name__ == "__main__":
+    main()

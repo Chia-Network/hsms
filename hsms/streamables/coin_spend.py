@@ -2,6 +2,7 @@ from .coin import Coin
 from .program import Program
 
 from hsms.atoms import streamable
+from hsms.util.clvm_serialization import transform_as_struct
 
 
 @streamable
@@ -15,3 +16,25 @@ class CoinSpend:
     coin: Coin
     puzzle_reveal: Program
     solution: Program
+
+    def as_program(self):
+        return [
+            [_.coin.parent_coin_info, _.puzzle_reveal, _.coin.amount, _.solution]
+            for _ in self.coin_spends
+        ]
+
+    @classmethod
+    def from_program(cls, program) -> "CoinSpend":
+        parent_coin_info, puzzle_reveal, amount, solution = transform_as_struct(
+            program,
+            lambda x: x.atom,
+            lambda x: x,
+            lambda x: Program.to(x).as_int(),
+            lambda x: x,
+        )
+        puzzle_reveal = Program.to(puzzle_reveal)
+        return cls(
+            Coin(parent_coin_info, puzzle_reveal.tree_hash(), amount),
+            puzzle_reveal,
+            solution,
+        )

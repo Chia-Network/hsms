@@ -51,7 +51,7 @@ def test_lifecycle():
         for pk in sum_pks
     ]
 
-    # work out the synthentic private keys as we'll need it later to finish the signing
+    # work out the synthetic private keys as we'll need it later to finish the signing
     synthetic_se_list = [
         calculate_synthetic_offset(pk, DEFAULT_HIDDEN_PUZZLE_HASH) for pk in sum_pks
     ]

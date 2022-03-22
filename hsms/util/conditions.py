@@ -15,5 +15,3 @@ def conditions_by_opcode(conditions: Program) -> Dict[int, List[Program]]:
         if _.pair:
             d.setdefault(Program.to(_.pair[0]).as_int(), []).append(_)
     return d
-
-

@@ -71,9 +71,7 @@ def transform_dict(program, dict_transformer_f):
     by invoking the corresponding values in xformer.
     """
     try:
-        r = clvm_to_list(
-            program, lambda x: dict_transformer_f(x.pair[0], x.pair[1].pair[0])
-        )
+        r = clvm_to_list(program, lambda x: dict_transformer_f(x.pair[0], x.pair[1]))
     except Exception as ex:
         print(ex)
         breakpoint()
@@ -139,6 +137,8 @@ def clvm_list_of_ints_to_list(
 ) -> List[T]:
     return clvm_to_list(items, lambda obj: from_int_f(int_from_bytes(obj.atom)))
 
+
+clvm_to_list_of_ints = clvm_list_of_ints_to_list
 
 K = Any
 V = Any
