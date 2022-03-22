@@ -75,9 +75,9 @@ def generate_synthetic_offset_signatures(us: UnsignedSpend) -> List[SignatureInf
         for final_public_key, message in generate_verify_pairs(
             coin_spend, us.agg_sig_me_network_suffix
         ):
-            sum_hints = sum_hints.get(final_public_key, [final_public_key])
+            sum_hint = sum_hints.get(final_public_key) or SumHint(final_public_key, [])
 
-            secret_key = sum_hints.synthetic_offset
+            secret_key = sum_hint.synthetic_offset
             partial_public_key = secret_key.public_key()
             signature = secret_key.sign(message, final_public_key)
             if final_public_key == partial_public_key:

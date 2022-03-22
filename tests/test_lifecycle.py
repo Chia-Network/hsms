@@ -7,8 +7,9 @@ from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     calculate_synthetic_offset,
 )
 from hsms.streamables import Coin, CoinSpend, SpendBundle
-from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.process.sign import sign, generate_synthetic_offset_signatures
+from hsms.process.signing_hints import SumHint, PathHint
+from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.puzzles.conlang import CREATE_COIN
 from hsms.util.debug_spend_bundle import debug_spend_bundle
 
@@ -84,10 +85,10 @@ def test_lifecycle():
     # create the "sum hints" which give information on how the public keys that appear in
     # the `AGG_SIG_ME` conditions were constructed
 
-    sum_hint_lookup = {
-        a_pk + b_pk + synthetic_se.public_key(): ([a_pk, b_pk], synthetic_se)
+    sum_hints = [
+        SumHint([a_pk, b_pk], synthetic_se)
         for a_pk, b_pk, synthetic_se in zip(pks_A, pks_B, synthetic_se_list)
-    }
+    ]
 
     # create the "path hints" which give information on how to get from the root public key
     # to the public keys used as inputs to the sum keys
@@ -95,17 +96,17 @@ def test_lifecycle():
     # If the public key is also the root public key, you don't need this hint
 
     pk_A = se_A.public_key()
-    path_hint_lookup_a = {pk: (pk_A, path) for pk, path in zip(pks_A, A_PATHS)}
+    path_hints_a = [PathHint(pk_A, path) for pk, path in zip(pks_A, A_PATHS)]
     pk_B = se_B.public_key()
-    path_hint_lookup_b = {pk: (pk_B, path) for pk, path in zip(pks_B, B_PATHS)}
+    path_hints_b = [PathHint(pk_B, path) for pk, path in zip(pks_B, B_PATHS)]
 
-    path_hint_lookup = path_hint_lookup_a | path_hint_lookup_b
+    path_hints = path_hints_a + path_hints_b
 
-    print(sum_hint_lookup)
-    print(path_hint_lookup)
+    print(sum_hints)
+    print(path_hints)
 
     unsigned_spend = UnsignedSpend(
-        coin_spends, sum_hint_lookup, path_hint_lookup, AGG_SIG_ME_ADDITIONAL_DATA
+        coin_spends, sum_hints, path_hints, AGG_SIG_ME_ADDITIONAL_DATA
     )
 
     print("-" * 10)
@@ -129,7 +130,6 @@ def test_lifecycle():
 
 
 def create_spend_bundle(unsigned_spend, signatures):
-
     extra_signatures = generate_synthetic_offset_signatures(unsigned_spend)
 
     # now let's try adding them all together and creating a `SpendBundle`
