@@ -70,13 +70,14 @@ def sign_for_coin_spend(
 
 def generate_synthetic_offset_signatures(us: UnsignedSpend) -> List[SignatureInfo]:
     sig_infos = []
+    sum_hints = build_sum_hints_lookup(us.sum_hints)
     for coin_spend in us.coin_spends:
         for final_public_key, message in generate_verify_pairs(
             coin_spend, us.agg_sig_me_network_suffix
         ):
-            sum_hints = us.sum_hints.get(final_public_key, [final_public_key])
+            sum_hints = sum_hints.get(final_public_key, [final_public_key])
 
-            secret_key = sum_hints[1]
+            secret_key = sum_hints.synthetic_offset
             partial_public_key = secret_key.public_key()
             signature = secret_key.sign(message, final_public_key)
             if final_public_key == partial_public_key:
