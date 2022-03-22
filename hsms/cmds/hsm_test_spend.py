@@ -27,9 +27,8 @@ def hsm_test_spend(args, parser):
     root_public_keys = [
         BLSPublicKey.from_bech32m(_.readline()[:-1]) for _ in args.public_key_file
     ]
-    print(root_public_keys)
 
-    paths = [[index] for index in range(len(root_public_keys))]
+    paths = [[index, index + 1] for index in range(len(root_public_keys))]
 
     public_keys = [
         root_key.child_for_path(path) for root_key, path in zip(root_public_keys, paths)

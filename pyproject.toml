@@ -15,7 +15,14 @@ test = ["nose", "coverage"]
 dev = ["flake8==4.0.1", "black==21.12b0"]
 
 [tool.enscons.entry_points]
-console_scripts = ["hsms0 = hsms.cmds.hsms0:main", "hsmgen = hsms.cmds.hsmgen:main", "hsmmerge = hsms.cmds.hsmmerge:main"]
+console_scripts = [
+  "hsms0 = hsms.cmds.hsms0:main",
+  "hsmpk = hsms.cmds.hsmpk:main",
+  "hsmgen = hsms.cmds.hsmgen:main",
+  "hsmmerge = hsms.cmds.hsmmerge:main",
+  "hsm_test_spend = hsms.cmds.hsm_test_spend:main",
+  "hsm_dump_sb = hsms.cmds.hsm_dump_sb:main"
+]
 
 [build-system]
 requires = ["pytoml>=0.1", "enscons", "setuptools_scm>=6.2"]

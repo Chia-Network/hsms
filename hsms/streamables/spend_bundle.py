@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import List
 
+import io
+
 from hsms.atoms import uint32, hexbytes
 from hsms.bls12_381 import BLSSignature
 
@@ -32,3 +34,11 @@ class SpendBundle:
             + bytes(self.aggregated_signature)
         )
         return hexbytes(s)
+
+    @classmethod
+    def from_bytes(cls, blob) -> "SpendBundle":
+        f = io.BytesIO(blob)
+        count = uint32.parse(f)
+        coin_spends = [CoinSpend.parse(f) for _ in range(count)]
+        aggregated_signature = BLSSignature.from_bytes(f.read())
+        return cls(coin_spends, aggregated_signature)
