@@ -25,7 +25,9 @@ import sys
 
 import segno
 
-from hsms.streamables import Program, SigningRequest
+from hsms.process.unsigned_spend import UnsignedSpend
+from hsms.process.sign import sign
+from hsms.streamables import Program
 from hsms.bls12_381.BLSSecretExponent import BLSSecretExponent, BLSSignature
 
 
@@ -38,28 +40,28 @@ def build_wallet_for_secret_exponents(
     return d
 
 
-def find_secret_key_for_signing_request(
-    wallet, signing_request: SigningRequest
+def find_secret_key_for_unsigned_spend(
+    wallet, unsigned_spend: UnsignedSpend
 ) -> Optional[BLSSecretExponent]:
-    for secret_key in wallet.get(signing_request.path_hints.fingerprint, []):
-        for index in signing_request.path_hints.path:
+    for secret_key in wallet.get(unsigned_spend.path_hints.fingerprint, []):
+        for index in unsigned_spend.path_hints.path:
             secret_key = secret_key.child(index)
-        if secret_key.public_key() == signing_request.partial_pubkey:
+        if secret_key.public_key() == unsigned_spend.partial_pubkey:
             return secret_key
     return None
 
 
 def generate_signature(
     wallet: Dict[int, BLSSecretExponent],
-    signing_request: SigningRequest,
+    unsigned_spend: UnsignedSpend,
 ) -> Optional[BLSSignature]:
-    secret_key = find_secret_key_for_signing_request(wallet, signing_request)
+    secret_key = find_secret_key_for_unsigned_spend(wallet, unsigned_spend)
     if secret_key:
-        return secret_key.sign(signing_request.message, signing_request.final_pubkey)
+        return secret_key.sign(unsigned_spend.message, unsigned_spend.final_pubkey)
     return None
 
 
-def create_signing_request_pipeline(f):
+def create_unsigned_spend_pipeline(f):
     print("waiting for base64-encoded signing requests")
     while True:
         try:
@@ -68,7 +70,7 @@ def create_signing_request_pipeline(f):
                 break
             blob = binascii.a2b_base64(line)
             program = Program.from_bytes(blob)
-            yield SigningRequest.from_clvm(program)
+            yield UnsignedSpend.from_program(program)
         except Exception as ex:
             print(ex)
 
@@ -97,11 +99,14 @@ def parse_private_key_file(args):
 
 
 def hsms(args, parser):
-    wallet = build_wallet_for_secret_exponents(parse_private_key_file(args))
-    signing_request_pipeline = create_signing_request_pipeline(sys.stdin)
-    for signing_request in signing_request_pipeline:
-        signature = generate_signature(wallet, signing_request)
-        if signature:
+    wallet = parse_private_key_file(args)
+    unsigned_spend_pipeline = create_unsigned_spend_pipeline(sys.stdin)
+    for unsigned_spend in unsigned_spend_pipeline:
+        signature_info = sign(unsigned_spend, wallet)
+        if signature_info:
+            signature = sum(
+                [_.signature for _ in signature_info], start=BLSSignature.zero()
+            )
             encoded_sig = binascii.b2a_base64(bytes(signature)).decode()
             print(encoded_sig)
             qr = segno.make_qr(encoded_sig)

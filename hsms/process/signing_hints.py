@@ -4,7 +4,6 @@ from typing import Dict, List
 from hsms.bls12_381 import BLSPublicKey, BLSSecretExponent
 from hsms.util.clvm_serialization import (
     clvm_to_list_of_ints,
-    transform_as_struct,
     clvm_to_list,
 )
 

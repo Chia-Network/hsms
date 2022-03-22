@@ -1,11 +1,10 @@
 import argparse
+import binascii
 import hashlib
 
 from hsms.bls12_381 import BLSPublicKey
 
 from hsms.process.signing_hints import SumHint, PathHint
-
-from tests.generate import se_generate, bytes32_generate, uint256_generate
 
 from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     DEFAULT_HIDDEN_PUZZLE,
@@ -13,11 +12,8 @@ from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     solution_for_conditions,
     calculate_synthetic_offset,
 )
-from hsms.streamables import Coin, CoinSpend, Program, SpendBundle
+from hsms.streamables import Coin, CoinSpend, Program
 from hsms.process.unsigned_spend import UnsignedSpend
-from hsms.process.sign import sign, generate_synthetic_offset_signatures
-from hsms.puzzles.conlang import CREATE_COIN
-from hsms.util.debug_spend_bundle import debug_spend_bundle
 
 MAINNET_AGG_SIG_ME_ADDITIONAL_DATA = bytes.fromhex(
     "ccd5bb71183532bff220ba46c268991a3ff07eb358e8255a65c30a2dce0e5fbb"
@@ -66,16 +62,12 @@ def hsm_test_spend(args, parser):
 
     coin_spend = CoinSpend(coin, puzzle, solution)
 
-    # sum_hints = {_.final_public_key(): _ for _ in [sum_hints]}
-
-    # path_hints = {_.public_key(): _ for _ in path_hints}
-
     unsigned_spend = UnsignedSpend(
         [coin_spend], sum_hints, path_hints, MAINNET_AGG_SIG_ME_ADDITIONAL_DATA
     )
 
     b = bytes(unsigned_spend)
-    print(b.hex())
+    print(binascii.b2a_base64(b).decode())
 
     us = UnsignedSpend.from_bytes(b)
     assert bytes(us) == b

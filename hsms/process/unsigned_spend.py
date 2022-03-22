@@ -4,8 +4,11 @@ from typing import List
 from hsms.bls12_381 import BLSPublicKey, BLSSignature
 from hsms.process.signing_hints import SumHint, PathHint
 from hsms.streamables import bytes32, CoinSpend, Program
-
-from .signing_hints import SumHint, PathHint
+from hsms.util.clvm_serialization import (
+    transform_dict,
+    transform_dict_by_key,
+    clvm_to_list,
+)
 
 
 @dataclass
@@ -51,12 +54,6 @@ class UnsignedSpend:
     def from_bytes(cls, blob) -> "UnsignedSpend":
         return cls.from_program(Program.from_bytes(blob))
 
-
-from hsms.util.clvm_serialization import (
-    transform_dict,
-    transform_dict_by_key,
-    clvm_to_list,
-)
 
 UNSIGNED_SPEND_TRANSFORMER = {
     "c": lambda x: clvm_to_list(x, CoinSpend.from_program),
