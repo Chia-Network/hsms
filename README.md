@@ -9,8 +9,8 @@ Install
 `$ pip install -e .`
 
 
-Enscons
+enscons
 -------
 
-This package uses [Enscons](https://github.com/dholth/enscons)
-which uses [Scons](https://scons.org/) to build rather than the commonly used `setuptools`.
+This package uses [enscons](https://github.com/dholth/enscons)
+which uses [SCons](https://scons.org/) to build rather than the commonly used `setuptools`.
