@@ -19,7 +19,12 @@ env = Environment(
 
 # Only *.py is included automatically by setup2toml.
 # Add extra 'purelib' files or package_data here.
-py_source = Glob("hsms/*.py") + Glob("hsms/*/*.py")
+py_source = (
+    Glob("hsms/*.py")
+    + Glob("hsms/*/*.py")
+    + Glob("hsms/puzzles/*cl")
+    + Glob("hsms/puzzles/*clvm")
+)
 
 source = env.Whl("purelib", py_source, root="")
 whl = env.WhlFile(source=source)
