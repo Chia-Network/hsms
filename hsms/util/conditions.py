@@ -10,7 +10,7 @@ def iter_program(program: Program) -> Iterable[Program]:
 
 
 def conditions_by_opcode(conditions: Program) -> Dict[int, List[Program]]:
-    d = {}
+    d: Dict[int, List[Program]] = {}
     for _ in iter_program(conditions):
         if _.pair:
             d.setdefault(Program.to(_.pair[0]).as_int(), []).append(_)

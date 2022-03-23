@@ -30,10 +30,10 @@ class Program(SExp, bin_methods):
         f = io.BytesIO(blob)
         return cls.parse(f)  # type: ignore # noqa
 
-    def __bytes__(self) -> bytes:
+    def __bytes__(self) -> hexbytes:
         f = io.BytesIO()
         self.stream(f)  # type: ignore # noqa
-        return f.getvalue()
+        return hexbytes(f.getvalue())
 
     def __str__(self) -> str:
         return bytes(self).hex()

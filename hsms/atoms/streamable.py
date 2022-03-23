@@ -1,11 +1,14 @@
 import dataclasses
 
-from typing import Type, BinaryIO, get_type_hints
+from typing import Type, BinaryIO, TypeVar, get_type_hints
 
 from .bin_methods import bin_methods
 
 
-def streamable(cls):
+T = TypeVar("T")
+
+
+def streamable(cls: T) -> T:
     """
     This is a decorator for class definitions. It applies the dataclasses.dataclass
     decorator, and also allows fields to be cast to their expected type. The resulting

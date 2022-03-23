@@ -63,7 +63,7 @@ class BLSSecretExponent:
             blspy.AugSchemeMPL.derive_child_sk_unhardened(self._sk, index)
         )
 
-    def child_for_path(self, path: List[int]) -> "BLSPublicKey":
+    def child_for_path(self, path: List[int]) -> "BLSSecretExponent":
         r = self
         for index in path:
             r = self.child(index)
@@ -74,14 +74,20 @@ class BLSSecretExponent:
 
     @classmethod
     def from_bech32m(cls, text: str) -> "BLSSecretExponent":
-        prefix, base8_data, encoding = bech32_decode(text)
-        if (
-            encoding != Encoding.BECH32M
-            or prefix != BECH32M_PREFIX
-            or len(base8_data) != 33
-        ):
-            raise ValueError("not a valid secret exponent")
-        return cls.from_bytes(base8_data[:32])
+        r = bech32_decode(text)
+        if r is not None:
+            prefix, base8_data, encoding = r
+            if (
+                encoding == Encoding.BECH32M
+                and prefix == BECH32M_PREFIX
+                and len(base8_data) == 33
+            ):
+                return cls.from_bytes(base8_data[:32])
+        raise ValueError("not secret exponent")
+
+    @classmethod
+    def zero(cls) -> "BLSSecretExponent":
+        return ZERO
 
     def __add__(self, other):
         return self.from_int(int(self) + int(other))
@@ -103,5 +109,3 @@ class BLSSecretExponent:
 
 
 ZERO = BLSSecretExponent.from_int(0)
-
-BLSSecretExponent.zero = lambda: ZERO

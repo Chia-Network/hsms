@@ -11,6 +11,13 @@ from .signing_hints import SumHint, SumHints, PathHint, PathHints
 from .unsigned_spend import SignatureInfo, UnsignedSpend
 
 
+@dataclass
+class SignatureMetadata:
+    partial_public_key: BLSPublicKey
+    final_public_key: BLSPublicKey
+    message: bytes
+
+
 def conditions_for_coin_spend(coin_spend: CoinSpend) -> Program:
     return coin_spend.puzzle_reveal.run(coin_spend.solution)
 
@@ -51,7 +58,7 @@ def sign_for_coin_spend(
         partial_public_key = signature_metadata.partial_public_key
         final_public_key = signature_metadata.final_public_key
         message = signature_metadata.message
-        path_hint = path_hints.get(partial_public_key, (partial_public_key, []))
+        path_hint = path_hints.get(partial_public_key) or PathHint(partial_public_key, [])
         secret_key = secret_key_for_public_key(
             secrets, path_hint.path, path_hint.root_public_key, partial_public_key
         )
@@ -75,7 +82,7 @@ def generate_synthetic_offset_signatures(us: UnsignedSpend) -> List[SignatureInf
         for final_public_key, message in generate_verify_pairs(
             coin_spend, us.agg_sig_me_network_suffix
         ):
-            sum_hint = sum_hints.get(final_public_key) or SumHint(final_public_key, [])
+            sum_hint = sum_hints.get(final_public_key) or SumHint([], BLSSecretExponent.zero())
 
             secret_key = sum_hint.synthetic_offset
             partial_public_key = secret_key.public_key()
@@ -104,22 +111,15 @@ def verify_pairs_for_conditions(
 
     agg_sig_me_conditions = d.get(AGG_SIG_ME, [])
     for condition in agg_sig_me_conditions:
-        condition = list(condition.as_atom_list())
-        yield BLSPublicKey.from_bytes(condition[1]), hexbytes(
-            condition[2] + agg_sig_me_message_suffix
+        condition_list = list(condition.as_atom_list())
+        yield BLSPublicKey.from_bytes(condition_list[1]), hexbytes(
+            condition_list[2] + agg_sig_me_message_suffix
         )
 
     agg_sig_unsafe_conditions = d.get(AGG_SIG_UNSAFE, [])
     for condition in agg_sig_unsafe_conditions:
-        condition = list(condition.as_atom_list())
-        yield BLSPublicKey.from_bytes(condition[1]), condition[2]
-
-
-@dataclass
-class SignatureMetadata:
-    partial_public_key: BLSPublicKey
-    final_public_key: BLSPublicKey
-    message: bytes
+        condition_list = list(condition.as_atom_list())
+        yield BLSPublicKey.from_bytes(condition_list[1]), hexbytes(condition[2])
 
 
 def secret_key_for_public_key(
@@ -142,24 +142,8 @@ def partial_signature_metadata_for_hsm(
     for final_public_key, message in verify_pairs_for_conditions(
         conditions, agg_sig_me_network_suffix
     ):
-        sum_hints = sum_hints.get(final_public_key, [final_public_key])
+        sum_hint = sum_hints.get(final_public_key) or SumHint([final_public_key], BLSSecretExponent.zero())
 
-        for partial_public_key in sum_hints.public_keys:
+        for partial_public_key in sum_hint.public_keys:
             metadata = SignatureMetadata(partial_public_key, final_public_key, message)
             yield metadata
-
-
-def partial_signatures_offsets(
-    conditions: Program,
-    sum_hints: SumHints,
-    path_hints: PathHints,
-    agg_sig_me_network_suffix: bytes32,
-) -> Iterable[Tuple[SignatureMetadata, BLSSecretExponent]]:
-    for final_public_key, message in verify_pairs_for_conditions(
-        conditions, agg_sig_me_network_suffix
-    ):
-        sum_hints = sum_hints.get(final_public_key, [final_public_key])
-
-        partial_public_key = sum_hints.synthetic_offset.public_key()
-        metadata = SignatureMetadata(partial_public_key, final_public_key, message)
-        yield metadata, sum_hints.synthetic_offset

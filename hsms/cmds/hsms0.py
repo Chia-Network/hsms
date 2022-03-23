@@ -1,21 +1,6 @@
 #!/usr/bin/env python
 
-# simplest HSM simulator possible
-# it accepts these parameters:
-# - message
-# - partial pubkey corresponding to the private key
-# - the hint fingerprint and path of the private key
-# - full pubkey to be used in the final signature (optional)
-
-"""
-m: message `bytes32`
-p: partial pubkey `BLSPublicKey`
-f: final pubkey `BLSPublicKey` (optional, defaults to partial)
-t: fingerprint lists
-h: path hints
-"""
-
-from typing import Dict, List, Optional
+from typing import BinaryIO, Dict, Iterable, List, Optional, TextIO
 
 import argparse
 import binascii
@@ -31,37 +16,7 @@ from hsms.streamables import Program
 from hsms.bls12_381.BLSSecretExponent import BLSSecretExponent, BLSSignature
 
 
-def build_wallet_for_secret_exponents(
-    secret_exponents: List[BLSSecretExponent],
-) -> Dict[int, BLSSecretExponent]:
-    d = {}
-    for private_key in secret_exponents:
-        d.setdefault(private_key.fingerprint(), []).append(private_key)
-    return d
-
-
-def find_secret_key_for_unsigned_spend(
-    wallet, unsigned_spend: UnsignedSpend
-) -> Optional[BLSSecretExponent]:
-    for secret_key in wallet.get(unsigned_spend.path_hints.fingerprint, []):
-        for index in unsigned_spend.path_hints.path:
-            secret_key = secret_key.child(index)
-        if secret_key.public_key() == unsigned_spend.partial_pubkey:
-            return secret_key
-    return None
-
-
-def generate_signature(
-    wallet: Dict[int, BLSSecretExponent],
-    unsigned_spend: UnsignedSpend,
-) -> Optional[BLSSignature]:
-    secret_key = find_secret_key_for_unsigned_spend(wallet, unsigned_spend)
-    if secret_key:
-        return secret_key.sign(unsigned_spend.message, unsigned_spend.final_pubkey)
-    return None
-
-
-def create_unsigned_spend_pipeline(f):
+def create_unsigned_spend_pipeline(f: BinaryIO) -> Iterable[UnsignedSpend]:
     print("waiting for base64-encoded signing requests")
     while True:
         try:
@@ -75,16 +30,18 @@ def create_unsigned_spend_pipeline(f):
             print(ex)
 
 
-def replace_with_gpg_pipe(args, f):
+def replace_with_gpg_pipe(args, f: BinaryIO) -> TextIO:
     gpg_args = ["gpg", "-d"]
     if args.gpg_argument:
         gpg_args.extend(args.gpg_argument.split())
     gpg_args.append(f.name)
     popen = subprocess.Popen(gpg_args, stdout=subprocess.PIPE)
+    if popen is None or popen.stdout is None:
+        raise ValueError("couldn't launch gpg")
     return io.TextIOWrapper(popen.stdout)
 
 
-def parse_private_key_file(args):
+def parse_private_key_file(args) -> List[BLSSecretExponent]:
     secret_exponents = []
     for f in args.private_key_file:
         if f.name.endswith(".gpg"):
@@ -113,7 +70,7 @@ def hsms(args, parser):
             qr.terminal()
 
 
-def create_parser():
+def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Manage private keys and process signing requests"
     )
@@ -142,7 +99,7 @@ def create_parser():
 def main():
     parser = create_parser()
     args = parser.parse_args()
-    hsms(args, parser)
+    return hsms(args, parser)
 
 
 if __name__ == "__main__":

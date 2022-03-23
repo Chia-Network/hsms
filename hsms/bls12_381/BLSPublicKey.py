@@ -69,14 +69,16 @@ class BLSPublicKey:
 
     @classmethod
     def from_bech32m(cls, text: str) -> "BLSPublicKey":
-        prefix, base8_data, encoding = bech32_decode(text, max_length=91)
-        if (
-            encoding != Encoding.BECH32M
-            or prefix != BECH32M_PREFIX
-            or len(base8_data) != 49
-        ):
-            raise ValueError("not bls12_381 bech32m pubkey")
-        return cls.from_bytes(base8_data[:48])
+        r = bech32_decode(text, max_length=91)
+        if r is not None:
+            prefix, base8_data, encoding = r
+            if (
+                encoding == Encoding.BECH32M
+                and prefix == BECH32M_PREFIX
+                and len(base8_data) == 49
+            ):
+                return cls.from_bytes(base8_data[:48])
+        raise ValueError("not bls12_381 bech32m pubkey")
 
     def __hash__(self):
         return bytes(self).__hash__()

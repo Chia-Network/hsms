@@ -40,7 +40,7 @@ class PathHint:
         return (bytes(self.root_public_key), self.path)
 
     @classmethod
-    def from_program(cls, program) -> "SumHint":
+    def from_program(cls, program) -> "PathHint":
         root_public_key = BLSPublicKey.from_bytes(program.pair[0].atom)
         path = clvm_to_list_of_ints(program.pair[1])
         return cls(root_public_key, path)
