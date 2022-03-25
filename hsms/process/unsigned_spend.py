@@ -34,11 +34,9 @@ class UnsignedSpend:
         ]
         as_clvm.append(("c", cs_as_clvm))
         sh_as_clvm = [_.as_program() for _ in self.sum_hints]
-        if sh_as_clvm:
-            as_clvm.append(("s", sh_as_clvm))
+        as_clvm.append(("s", sh_as_clvm))
         ph_as_clvm = [_.as_program() for _ in self.path_hints]
-        if ph_as_clvm:
-            as_clvm.append(("p", ph_as_clvm))
+        as_clvm.append(("p", ph_as_clvm))
         self_as_program = Program.to(as_clvm)
         return self_as_program
 
