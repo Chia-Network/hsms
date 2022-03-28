@@ -2,6 +2,7 @@ from .coin import Coin
 from .program import Program
 
 from hsms.atoms import streamable
+from hsms.atoms.ints import uint64
 from hsms.util.clvm_serialization import transform_as_struct
 
 
@@ -34,7 +35,7 @@ class CoinSpend:
         )
         puzzle_reveal = Program.to(puzzle_reveal)
         return cls(
-            Coin(parent_coin_info, puzzle_reveal.tree_hash(), amount),
+            Coin(bytes32(parent_coin_info), puzzle_reveal.tree_hash(), uint64(amount)),
             puzzle_reveal,
             solution,
         )

@@ -1,5 +1,6 @@
 from tests.generate import se_generate, bytes32_generate, uint256_generate
 
+from hsms.atoms.ints import uint64
 from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     DEFAULT_HIDDEN_PUZZLE,
     puzzle_for_public_key_and_hidden_puzzle,
@@ -63,7 +64,7 @@ def test_lifecycle():
         Coin(
             bytes32_generate(idx),
             puzzle.tree_hash(),
-            5 + (uint256_generate(idx) % COIN_MAX),
+            uint64(5 + (uint256_generate(idx) % COIN_MAX)),
         )
         for idx, puzzle in enumerate(puzzles)
     ]

@@ -11,6 +11,7 @@ from clvm.serialize import sexp_from_stream, sexp_to_stream
 from clvm_tools.curry import curry
 
 from hsms.atoms import bin_methods, hexbytes
+from hsms.streamables import bytes32
 
 
 class Program(SExp, bin_methods):
@@ -56,7 +57,7 @@ class Program(SExp, bin_methods):
         else:
             atom = self.as_atom()
             s = b"\1" + atom
-        return hashlib.sha256(s).digest()
+        return bytes32(hashlib.sha256(s).digest())
 
     def run_with_cost(
         self,
