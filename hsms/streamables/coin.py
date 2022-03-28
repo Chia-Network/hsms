@@ -27,7 +27,7 @@ class Coin:
         parent_coin_info = blob[:32]
         puzzle_hash = blob[32:64]
         amount = int_from_bytes(blob[64:])
-        return Coin(parent_coin_info, puzzle_hash, uint64(amount))
+        return Coin(bytes32(parent_coin_info), puzzle_hash, uint64(amount))
 
     def __bytes__(self):
         f = io.BytesIO()
