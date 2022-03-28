@@ -1,5 +1,7 @@
 import io
 
+from dataclasses import dataclass
+
 from clvm.casts import int_from_bytes, int_to_bytes
 
 from hsms.atoms import streamable, uint64
@@ -9,6 +11,7 @@ from hsms.util.std_hash import std_hash
 from . import bytes32
 
 
+@dataclass(frozen=True)
 @streamable
 class Coin:
     """
