@@ -35,6 +35,7 @@ class CoinSpend:
             lambda x: x,
         )
         puzzle_reveal = Program.to(puzzle_reveal)
+        solution = Program.to(solution)
         return cls(
             Coin(bytes32(parent_coin_info), puzzle_reveal.tree_hash(), uint64(amount)),
             puzzle_reveal,
