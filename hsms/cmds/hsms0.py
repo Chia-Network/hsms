@@ -3,27 +3,27 @@
 from typing import BinaryIO, Dict, Iterable, List, Optional, TextIO
 
 import argparse
-import binascii
 import io
 import subprocess
 import sys
 
 import segno
 
+from hsms.bls12_381.BLSSecretExponent import BLSSecretExponent, BLSSignature
 from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.process.sign import sign
 from hsms.streamables import Program
-from hsms.bls12_381.BLSSecretExponent import BLSSecretExponent, BLSSignature
+from hsms.util.qrint_encoding import a2b_qrint, b2a_qrint
 
 
 def create_unsigned_spend_pipeline(f: BinaryIO) -> Iterable[UnsignedSpend]:
     print("waiting for base64-encoded signing requests")
     while True:
         try:
-            line = f.readline()
+            line = f.readline().strip()
             if len(line) == 0:
                 break
-            blob = binascii.a2b_base64(line)
+            blob = a2b_qrint(line)
             program = Program.from_bytes(blob)
             yield UnsignedSpend.from_program(program)
         except Exception as ex:
@@ -64,7 +64,7 @@ def hsms(args, parser):
             signature = sum(
                 [_.signature for _ in signature_info], start=BLSSignature.zero()
             )
-            encoded_sig = binascii.b2a_base64(bytes(signature)).decode()
+            encoded_sig = b2a_qrint(bytes(signature))
             print(encoded_sig)
             qr = segno.make_qr(encoded_sig)
             qr.terminal()
