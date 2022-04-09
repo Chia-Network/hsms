@@ -2,7 +2,8 @@ import io
 
 from clvm.casts import int_from_bytes, int_to_bytes
 
-from hsms.atoms import streamable, uint64
+from hsms.atoms import uint64
+from hsms.meta import streamable
 
 from hsms.util.std_hash import std_hash
 

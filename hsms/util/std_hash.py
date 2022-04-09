@@ -1,6 +1,6 @@
 import hashlib
 
-from hsms.streamables import bytes32
+from hsms.atoms import bytes32
 
 
 def std_hash(b) -> bytes32:

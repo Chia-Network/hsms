@@ -2,7 +2,7 @@ from typing import Iterator, List, Tuple
 
 import blspy
 
-from hsms.atoms import streamable
+from hsms.meta import streamable
 
 from hsms.streamables import bytes32, bytes96
 

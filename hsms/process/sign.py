@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Iterable, List, Optional, Tuple
 
-from hsms.atoms.hexbytes import hexbytes
+from hsms.atoms import hexbytes
 from hsms.bls12_381 import BLSPublicKey, BLSSecretExponent
 from hsms.streamables import bytes32, CoinSpend, Program
 from hsms.puzzles.conlang import AGG_SIG_ME, AGG_SIG_UNSAFE

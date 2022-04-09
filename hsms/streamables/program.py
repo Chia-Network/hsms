@@ -10,7 +10,8 @@ from clvm.serialize import sexp_from_stream, sexp_to_stream
 
 from clvm_tools.curry import curry
 
-from hsms.atoms import bin_methods, hexbytes
+from hsms.atoms import hexbytes
+from hsms.meta import bin_methods
 
 
 class Program(SExp, bin_methods):
