@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Iterator, List, Tuple
 
 import blspy
 
@@ -54,8 +54,8 @@ class BLSSignature:
     def __repr__(self):
         return "<%s: %s>" % (self.__class__.__name__, self)
 
-    def validate(self, hash_key_pairs: List[aggsig_pair]) -> bool:
-        return self.verify([_.public_key, _.message_hash] for _ in hash_key_pairs)
+    def validate(self, hash_key_pairs: Iterator[aggsig_pair]) -> bool:
+        return self.verify([(_.public_key, _.message_hash) for _ in hash_key_pairs])
 
     def verify(self, hash_key_pairs: List[Tuple[BLSPublicKey, bytes32]]) -> bool:
         public_keys: List[blspy.G1Element] = [_[0]._g1 for _ in hash_key_pairs]

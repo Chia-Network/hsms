@@ -107,8 +107,6 @@ def a2b_qrint_payload(s: str, grouping_size_bits: int) -> bytes:
     digit_block_size = len(str(max_value))
 
     len_s = len(s)
-    block_count = len_s // digit_block_size
-
     blocks = [
         int(s[_ : _ + digit_block_size]) for _ in range(1, len_s, digit_block_size)
     ]
@@ -139,7 +137,10 @@ PREFIX_TABLE = {
 
 
 def a2b_qrint(s: str) -> bytes:
-    grouping_size_bits, padding = PREFIX_TABLE.get(s[0])
+    c = s[0]
+    if c not in PREFIX_TABLE:
+        raise ValueError(f"illegal prefix {c}")
+    grouping_size_bits, padding = PREFIX_TABLE[c]
     payload = a2b_qrint_payload(s, grouping_size_bits)
     if padding:
         payload = payload[:-padding]

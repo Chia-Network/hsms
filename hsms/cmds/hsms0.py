@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from typing import BinaryIO, Dict, Iterable, List, Optional, TextIO
+from typing import BinaryIO, Iterable, List, TextIO
 
 import argparse
 import io
@@ -16,7 +16,7 @@ from hsms.streamables import Program
 from hsms.util.qrint_encoding import a2b_qrint, b2a_qrint
 
 
-def create_unsigned_spend_pipeline(f: BinaryIO) -> Iterable[UnsignedSpend]:
+def create_unsigned_spend_pipeline(f: TextIO) -> Iterable[UnsignedSpend]:
     print("waiting for base64-encoded signing requests")
     while True:
         try:
