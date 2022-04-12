@@ -43,7 +43,7 @@ class UnsignedSpend:
     @classmethod
     def from_program(cls, program) -> "UnsignedSpend":
         d = transform_dict(program, transform_dict_by_key(UNSIGNED_SPEND_TRANSFORMER))
-        return cls(d["c"], d["s"], d["p"], d["a"])
+        return cls(d["c"], d.get("s", []), d.get("p", []), d["a"])
 
     def __bytes__(self):
         return bytes(self.as_program())

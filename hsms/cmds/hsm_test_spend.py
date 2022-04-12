@@ -1,5 +1,4 @@
 import argparse
-import binascii
 import hashlib
 
 from hsms.bls12_381 import BLSPublicKey
@@ -14,6 +13,7 @@ from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
 )
 from hsms.streamables import Coin, CoinSpend, Program
 from hsms.process.unsigned_spend import UnsignedSpend
+from hsms.util.qrint_encoding import b2a_qrint
 
 MAINNET_AGG_SIG_ME_ADDITIONAL_DATA = bytes.fromhex(
     "ccd5bb71183532bff220ba46c268991a3ff07eb358e8255a65c30a2dce0e5fbb"
@@ -66,7 +66,7 @@ def hsm_test_spend(args, parser):
     )
 
     b = bytes(unsigned_spend)
-    print(binascii.b2a_base64(b).decode())
+    print(b2a_qrint(b))
 
     us = UnsignedSpend.from_bytes(b)
     assert bytes(us) == b
