@@ -11,6 +11,7 @@ from hsms.process.sign import sign, generate_synthetic_offset_signatures
 from hsms.process.signing_hints import SumHint, PathHint
 from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.puzzles.conlang import CREATE_COIN
+from hsms.util.byte_chunks import ChunkAssembler, b2a_chunks
 from hsms.util.debug_spend_bundle import debug_spend_bundle
 
 
@@ -108,6 +109,20 @@ def test_lifecycle():
     unsigned_spend = UnsignedSpend(
         coin_spends, sum_hints, path_hints, AGG_SIG_ME_ADDITIONAL_DATA
     )
+
+    assert unsigned_spend == UnsignedSpend.from_chunks(unsigned_spend.chunk(500))
+
+    spend_chunks = b2a_chunks(bytes(unsigned_spend), 250)
+    assembler = ChunkAssembler()
+    assembler.add_chunk(spend_chunks[0])
+    assembler.add_chunk(spend_chunks[0])
+    assert assembler.status() == (1, len(spend_chunks))
+    assert not assembler.is_assembled()
+    for i in range(1,len(spend_chunks)):
+        assembler.add_chunk(spend_chunks[i])
+    assert assembler.is_assembled()
+    assert assembler.status() == (len(spend_chunks), len(spend_chunks))
+    assert unsigned_spend == UnsignedSpend.from_bytes(assembler.assemble())
 
     print("-" * 10)
 
