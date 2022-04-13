@@ -1,9 +1,12 @@
+import zlib
+
 from dataclasses import dataclass
 from typing import List
 
 from hsms.bls12_381 import BLSPublicKey, BLSSignature
 from hsms.process.signing_hints import SumHint, PathHint
 from hsms.streamables import bytes32, CoinSpend, Program
+from hsms.util.byte_chunks import a2b_chunks, b2a_chunks
 from hsms.util.clvm_serialization import (
     transform_dict,
     transform_dict_by_key,
@@ -51,6 +54,14 @@ class UnsignedSpend:
     @classmethod
     def from_bytes(cls, blob) -> "UnsignedSpend":
         return cls.from_program(Program.from_bytes(blob))
+
+    def chunk(self, bytes_per_chunk: int) -> List[bytes]:
+        bundle_bytes = zlib.compress(bytes(self), level=9)
+        return b2a_chunks(bundle_bytes, bytes_per_chunk)
+
+    @classmethod
+    def from_chunks(cls, chunks: List[bytes]) -> "UnsignedSpend":
+        return UnsignedSpend.from_bytes(zlib.decompress(a2b_chunks(chunks)))
 
 
 UNSIGNED_SPEND_TRANSFORMER = {
