@@ -75,12 +75,6 @@ def create_parser() -> argparse.ArgumentParser:
         description="Manage private keys and process signing requests"
     )
     parser.add_argument(
-        "-c",
-        "--create-private-key",
-        nargs=1,
-        help="create keys for non-existent files",
-    )
-    parser.add_argument(
         "-g", "--gpg-argument", help="argument to pass to gpg (besides -d).", default=""
     )
     parser.add_argument(
