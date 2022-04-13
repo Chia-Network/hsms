@@ -16,7 +16,7 @@ dev = ["flake8==4.0.1", "black==21.12b0"]
 
 [tool.enscons.entry_points]
 console_scripts = [
-  "hsms0 = hsms.cmds.hsms0:main",
+  "hsms = hsms.cmds.hsms:main",
   "hsmpk = hsms.cmds.hsmpk:main",
   "hsmgen = hsms.cmds.hsmgen:main",
   "hsmmerge = hsms.cmds.hsmmerge:main",
