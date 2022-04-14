@@ -13,6 +13,7 @@ from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
 )
 from hsms.streamables import Coin, CoinSpend, Program
 from hsms.process.unsigned_spend import UnsignedSpend
+from hsms.puzzles.conlang import CREATE_COIN
 from hsms.util.qrint_encoding import b2a_qrint
 
 MAINNET_AGG_SIG_ME_ADDITIONAL_DATA = bytes.fromhex(
@@ -56,7 +57,14 @@ def hsm_test_spend(args, parser):
 
     # destination
 
-    conditions_for_spend = Program.to(["NO-OP"])
+    dest_puzzle_hash_1 = Program.to(100).tree_hash()
+    dest_puzzle_hash_2 = Program.to(200).tree_hash()
+    conditions_for_spend = Program.to(
+        [
+            [CREATE_COIN, dest_puzzle_hash_1, int(3 * 1e12)],
+            [CREATE_COIN, dest_puzzle_hash_2, int(2 * 1e12)],
+        ]
+    )
     solution = solution_for_conditions(conditions_for_spend)
 
     coin_spend = CoinSpend(coin, puzzle, solution)
