@@ -1,31 +1,40 @@
 #!/usr/bin/env python
 
+from decimal import Decimal
 from typing import BinaryIO, Iterable, List, TextIO
 
 import argparse
 import io
+import readline  # noqa: this allows long lines on stdin
 import subprocess
-import sys
 
 import segno
 
 from hsms.bls12_381.BLSSecretExponent import BLSSecretExponent, BLSSignature
+from hsms.consensus.conditions import conditions_by_opcode
+from hsms.process.sign import conditions_for_coin_spend, sign
 from hsms.process.unsigned_spend import UnsignedSpend
-from hsms.process.sign import sign
-from hsms.streamables import Program
+from hsms.puzzles import conlang
+from hsms.streamables import bytes32, Program
+from hsms.util.bech32 import bech32_encode
 from hsms.util.qrint_encoding import a2b_qrint, b2a_qrint
 
 
-def create_unsigned_spend_pipeline(f: TextIO) -> Iterable[UnsignedSpend]:
-    print("waiting for base64-encoded signing requests")
+XCH_PER_MOJO = Decimal(1e12)
+
+
+def create_unsigned_spend_pipeline() -> Iterable[UnsignedSpend]:
+    print("waiting for qrint-encoded signing requests")
     while True:
         try:
-            line = f.readline().strip()
+            line = input("> ").strip()
             if len(line) == 0:
                 break
             blob = a2b_qrint(line)
             program = Program.from_bytes(blob)
             yield UnsignedSpend.from_program(program)
+        except EOFError:
+            break
         except Exception as ex:
             print(ex)
 
@@ -55,19 +64,53 @@ def parse_private_key_file(args) -> List[BLSSecretExponent]:
     return secret_exponents
 
 
+def summarize_unsigned_spend(unsigned_spend: UnsignedSpend):
+    print()
+    for coin_spend in unsigned_spend.coin_spends:
+        xch_amount = Decimal(coin_spend.coin.amount) / XCH_PER_MOJO
+        address = address_for_puzzle_hash(coin_spend.coin.puzzle_hash)
+        print(f"COIN SPENT: {xch_amount:0.12f} xch at address {address}")
+        conditions = conditions_for_coin_spend(coin_spend)
+
+    print()
+    for coin_spend in unsigned_spend.coin_spends:
+        conditions = conditions_for_coin_spend(coin_spend)
+        conditions_lookup = conditions_by_opcode(conditions)
+        for create_coin in conditions_lookup.get(conlang.CREATE_COIN, []):
+            puzzle_hash = create_coin.at("rf").atom
+            address = address_for_puzzle_hash(puzzle_hash)
+            amount = int(create_coin.at("rrf"))
+            xch_amount = Decimal(amount) / XCH_PER_MOJO
+            print(f"COIN CREATED: {xch_amount:0.12f} xch to {address}")
+    print()
+
+
+def address_for_puzzle_hash(puzzle_hash: bytes32) -> str:
+    return bech32_encode("xch", puzzle_hash)
+
+
+def check_ok():
+    text = input('if this looks reasonable, enter "ok" to generate signature> ')
+    return text.lower() == "ok"
+
+
 def hsms(args, parser):
     wallet = parse_private_key_file(args)
-    unsigned_spend_pipeline = create_unsigned_spend_pipeline(sys.stdin)
+    unsigned_spend_pipeline = create_unsigned_spend_pipeline()
     for unsigned_spend in unsigned_spend_pipeline:
+        summarize_unsigned_spend(unsigned_spend)
+        if not check_ok():
+            continue
         signature_info = sign(unsigned_spend, wallet)
         if signature_info:
             signature = sum(
                 [_.signature for _ in signature_info], start=BLSSignature.zero()
             )
             encoded_sig = b2a_qrint(bytes(signature))
-            print(encoded_sig)
             qr = segno.make_qr(encoded_sig)
+            print()
             qr.terminal()
+            print()
 
 
 def create_parser() -> argparse.ArgumentParser:

@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from typing import Iterable, List, Optional, Tuple
+from weakref import WeakKeyDictionary
 
 from hsms.atoms import hexbytes
 from hsms.bls12_381 import BLSPublicKey, BLSSecretExponent
+from hsms.consensus.conditions import conditions_by_opcode
 from hsms.streamables import bytes32, CoinSpend, Program
 from hsms.puzzles.conlang import AGG_SIG_ME, AGG_SIG_UNSAFE
-from hsms.util.conditions import conditions_by_opcode
 
 from .signing_hints import SumHint, SumHints, PathHint, PathHints
 from .unsigned_spend import SignatureInfo, UnsignedSpend
@@ -18,8 +19,15 @@ class SignatureMetadata:
     message: bytes
 
 
+CONDITIONS_FOR_COIN_SPEND: WeakKeyDictionary[CoinSpend, Program] = WeakKeyDictionary()
+
+
 def conditions_for_coin_spend(coin_spend: CoinSpend) -> Program:
-    return coin_spend.puzzle_reveal.run(coin_spend.solution)
+    if coin_spend not in CONDITIONS_FOR_COIN_SPEND:
+        CONDITIONS_FOR_COIN_SPEND[coin_spend] = coin_spend.puzzle_reveal.run(
+            coin_spend.solution
+        )
+    return CONDITIONS_FOR_COIN_SPEND[coin_spend]
 
 
 def build_sum_hints_lookup(sum_hints: List[SumHint]) -> SumHints:

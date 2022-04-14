@@ -4,10 +4,10 @@ from clvm import KEYWORD_FROM_ATOM
 from clvm_tools.binutils import disassemble as bu_disassemble
 
 from hsms.bls12_381 import BLSSignature
+from hsms.consensus.conditions import conditions_by_opcode
 from hsms.process.sign import generate_verify_pairs
 from hsms.puzzles import conlang
 from hsms.streamables import Coin, Program
-from hsms.util.conditions import conditions_by_opcode
 from hsms.util.std_hash import std_hash
 
 KFA = {bytes([getattr(conlang, k)]): k for k in dir(conlang) if k[0] in "ACR"}

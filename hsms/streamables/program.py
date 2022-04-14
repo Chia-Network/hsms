@@ -36,6 +36,9 @@ class Program(SExp, bin_methods):
         self.stream(f)  # type: ignore # noqa
         return hexbytes(f.getvalue())
 
+    def __hash__(self):
+        return bytes(self).__hash__()
+
     def __str__(self) -> str:
         return bytes(self).hex()
 
