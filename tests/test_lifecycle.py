@@ -12,7 +12,7 @@ from hsms.process.sign import sign, generate_synthetic_offset_signatures
 from hsms.process.signing_hints import SumHint, PathHint
 from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.puzzles.conlang import CREATE_COIN
-from hsms.util.byte_chunks import ChunkAssembler, b2a_chunks
+from hsms.util.byte_chunks import ChunkAssembler, create_chunks_for_blob
 
 
 AGG_SIG_ME_ADDITIONAL_DATA = bytes.fromhex(
@@ -112,7 +112,7 @@ def test_lifecycle():
 
     assert unsigned_spend == UnsignedSpend.from_chunks(unsigned_spend.chunk(500))
 
-    spend_chunks = b2a_chunks(bytes(unsigned_spend), 250)
+    spend_chunks = create_chunks_for_blob(bytes(unsigned_spend), 250)
     assembler = ChunkAssembler()
     assembler.add_chunk(spend_chunks[0])
     assembler.add_chunk(spend_chunks[0])

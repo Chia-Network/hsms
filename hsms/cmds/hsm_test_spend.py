@@ -14,6 +14,10 @@ from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
 from hsms.streamables import Coin, CoinSpend, Program
 from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.puzzles.conlang import CREATE_COIN
+from hsms.util.byte_chunks import (
+    create_chunks_for_blob,
+    optimal_chunk_size_for_max_chunk_size,
+)
 from hsms.util.qrint_encoding import b2a_qrint
 
 MAINNET_AGG_SIG_ME_ADDITIONAL_DATA = bytes.fromhex(
@@ -74,7 +78,10 @@ def hsm_test_spend(args, parser):
     )
 
     b = bytes(unsigned_spend)
-    print(b2a_qrint(b))
+    optimal_size = optimal_chunk_size_for_max_chunk_size(len(b), args.max_chunk_size)
+    chunks = create_chunks_for_blob(b, optimal_size)
+    for chunk in chunks:
+        print(b2a_qrint(chunk))
 
     us = UnsignedSpend.from_bytes(b)
     assert bytes(us) == b
@@ -85,10 +92,17 @@ def create_parser():
         description="Generate a `UnsignedSpend` test as a proof-of-concept"
     )
     parser.add_argument(
+        "-m",
+        "--max-chunk-size",
+        metavar="maximum-bytes-per-chunk",
+        default=8192,
+        help="maximum number of bytes encoded into each chunk",
+        type=int,
+    )
+    parser.add_argument(
         "public_key_file",
         metavar="path-to-public-key",
         nargs="+",
-        # default=[],
         help="file containing a single bech32m-encoded public key",
         type=argparse.FileType("r"),
     )

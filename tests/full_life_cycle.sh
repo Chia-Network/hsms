@@ -13,7 +13,7 @@ do
   fi
 done
 
-hsm_test_spend 1.pub 2.pub > unsigned-test-spend.qri
+hsm_test_spend -m 200 1.pub 2.pub > unsigned-test-spend.qri
 
 echo $(cat unsigned-test-spend.qri) | hsms -y 1.se > sig.1
 echo $(cat unsigned-test-spend.qri) | hsms -y 2.se > sig.2

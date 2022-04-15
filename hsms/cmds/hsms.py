@@ -18,6 +18,7 @@ from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.puzzles import conlang
 from hsms.streamables import bytes32, Program
 from hsms.util.bech32 import bech32_encode
+from hsms.util.byte_chunks import ChunkAssembler
 from hsms.util.qrint_encoding import a2b_qrint, b2a_qrint
 
 
@@ -26,6 +27,7 @@ XCH_PER_MOJO = Decimal(1e12)
 
 def create_unsigned_spend_pipeline() -> Iterable[UnsignedSpend]:
     print("waiting for qrint-encoded signing requests", file=sys.stderr)
+    partial_encodings = {}
     while True:
         try:
             print("> ", end="", file=sys.stderr)
@@ -33,8 +35,15 @@ def create_unsigned_spend_pipeline() -> Iterable[UnsignedSpend]:
             if len(line) == 0:
                 break
             blob = a2b_qrint(line)
-            program = Program.from_bytes(blob)
-            yield UnsignedSpend.from_program(program)
+            part_count = blob[-1]
+            if part_count not in partial_encodings:
+                partial_encodings[part_count] = ChunkAssembler()
+            ca = partial_encodings[part_count]
+            ca.add_chunk(blob)
+            if ca.is_assembled():
+                del partial_encodings[part_count]
+                program = Program.from_bytes(ca.assemble())
+                yield UnsignedSpend.from_program(program)
         except EOFError:
             break
         except Exception as ex:
