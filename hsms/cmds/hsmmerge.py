@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from typing import List
+
 import argparse
 
 from hsms.bls12_381.BLSSecretExponent import BLSSignature
@@ -9,8 +11,7 @@ from hsms.streamables import bytes96, SpendBundle
 from hsms.util.qrint_encoding import a2b_qrint
 
 
-def create_spend_bundle(unsigned_spend, signatures):
-
+def create_spend_bundle(unsigned_spend: UnsignedSpend, signatures: List[BLSSignature]):
     extra_signatures = generate_synthetic_offset_signatures(unsigned_spend)
 
     # now let's try adding them all together and creating a `SpendBundle`

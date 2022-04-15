@@ -7,6 +7,7 @@ import argparse
 import io
 import readline  # noqa: this allows long lines on stdin
 import subprocess
+import sys
 
 import segno
 
@@ -24,10 +25,11 @@ XCH_PER_MOJO = Decimal(1e12)
 
 
 def create_unsigned_spend_pipeline() -> Iterable[UnsignedSpend]:
-    print("waiting for qrint-encoded signing requests")
+    print("waiting for qrint-encoded signing requests", file=sys.stderr)
     while True:
         try:
-            line = input("> ").strip()
+            print("> ", end="", file=sys.stderr)
+            line = input("").strip()
             if len(line) == 0:
                 break
             blob = a2b_qrint(line)
@@ -36,7 +38,7 @@ def create_unsigned_spend_pipeline() -> Iterable[UnsignedSpend]:
         except EOFError:
             break
         except Exception as ex:
-            print(ex)
+            print(ex, file=sys.stderr)
 
 
 def replace_with_gpg_pipe(args, f: BinaryIO) -> TextIO:
@@ -65,14 +67,16 @@ def parse_private_key_file(args) -> List[BLSSecretExponent]:
 
 
 def summarize_unsigned_spend(unsigned_spend: UnsignedSpend):
-    print()
+    print(file=sys.stderr)
     for coin_spend in unsigned_spend.coin_spends:
         xch_amount = Decimal(coin_spend.coin.amount) / XCH_PER_MOJO
         address = address_for_puzzle_hash(coin_spend.coin.puzzle_hash)
-        print(f"COIN SPENT: {xch_amount:0.12f} xch at address {address}")
+        print(
+            f"COIN SPENT: {xch_amount:0.12f} xch at address {address}", file=sys.stderr
+        )
         conditions = conditions_for_coin_spend(coin_spend)
 
-    print()
+    print(file=sys.stderr)
     for coin_spend in unsigned_spend.coin_spends:
         conditions = conditions_for_coin_spend(coin_spend)
         conditions_lookup = conditions_by_opcode(conditions)
@@ -81,8 +85,8 @@ def summarize_unsigned_spend(unsigned_spend: UnsignedSpend):
             address = address_for_puzzle_hash(puzzle_hash)
             amount = int(create_coin.at("rrf"))
             xch_amount = Decimal(amount) / XCH_PER_MOJO
-            print(f"COIN CREATED: {xch_amount:0.12f} xch to {address}")
-    print()
+            print(f"COIN CREATED: {xch_amount:0.12f} xch to {address}", file=sys.stderr)
+    print(file=sys.stderr)
 
 
 def address_for_puzzle_hash(puzzle_hash: bytes32) -> str:
@@ -98,24 +102,39 @@ def hsms(args, parser):
     wallet = parse_private_key_file(args)
     unsigned_spend_pipeline = create_unsigned_spend_pipeline()
     for unsigned_spend in unsigned_spend_pipeline:
-        summarize_unsigned_spend(unsigned_spend)
-        if not check_ok():
-            continue
+        if not args.yes:
+            summarize_unsigned_spend(unsigned_spend)
+            if not check_ok():
+                continue
         signature_info = sign(unsigned_spend, wallet)
         if signature_info:
             signature = sum(
                 [_.signature for _ in signature_info], start=BLSSignature.zero()
             )
             encoded_sig = b2a_qrint(bytes(signature))
-            qr = segno.make_qr(encoded_sig)
-            print()
-            qr.terminal()
-            print()
+            if args.qr:
+                qr = segno.make_qr(encoded_sig)
+                print()
+                qr.terminal()
+                print()
+            else:
+                print(encoded_sig)
 
 
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Manage private keys and process signing requests"
+    )
+    parser.add_argument(
+        "-y",
+        "--yes",
+        help="skip confirmations",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--qr",
+        help="show signature as QR code",
+        action="store_true",
     )
     parser.add_argument(
         "-g", "--gpg-argument", help="argument to pass to gpg (besides -d).", default=""
