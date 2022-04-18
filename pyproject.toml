@@ -22,7 +22,8 @@ console_scripts = [
   "hsmmerge = hsms.cmds.hsmmerge:main",
   "hsm_test_spend = hsms.cmds.hsm_test_spend:main",
   "hsm_dump_sb = hsms.cmds.hsm_dump_sb:main",
-  "qrint = hsms.cmds.qrint:main"
+  "qrint = hsms.cmds.qrint:main",
+  "hsmwizard = hsms.cmds.hsmwizard:main"
 ]
 
 [build-system]
