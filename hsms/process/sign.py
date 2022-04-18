@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Tuple
 from weakref import WeakKeyDictionary
 
 from hsms.atoms import hexbytes
@@ -19,7 +19,7 @@ class SignatureMetadata:
     message: bytes
 
 
-CONDITIONS_FOR_COIN_SPEND: WeakKeyDictionary[CoinSpend, Program] = WeakKeyDictionary()
+CONDITIONS_FOR_COIN_SPEND: Dict[CoinSpend, Program] = WeakKeyDictionary()
 
 
 def conditions_for_coin_spend(coin_spend: CoinSpend) -> Program:

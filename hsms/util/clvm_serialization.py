@@ -1,7 +1,7 @@
 from typing import Any, Callable, Dict, List, Tuple, TypeVar
 
-from clvm import CLVMObject
 from clvm.casts import int_from_bytes
+from clvm.CLVMObject import CLVMObject
 
 
 K = TypeVar("K")
