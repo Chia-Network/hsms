@@ -124,7 +124,7 @@ def hsms(args, parser):
             if args.qr:
                 qr = segno.make_qr(encoded_sig)
                 print()
-                qr.terminal()
+                qr.terminal(compact=True)
                 print()
             else:
                 print(encoded_sig)
