@@ -109,7 +109,7 @@ def main():
         )
     if wallet_path.exists():
         parser = hsms.cmds.hsms.create_parser()
-        args = parser.parse_args([str(wallet_path)])
+        args = parser.parse_args(["--qr", str(wallet_path)])
         hsms.cmds.hsms.hsms(args, parser)
     else:
         if args.remount_command_read_write:
