@@ -53,6 +53,7 @@ def generate_secret(wallet_path):
     with open(wallet_path, "w") as f:
         f.write(t)
 
+    print(CLEAR_SCREEN)
     print("you entered your secret correctly! Good job")
 
     public_key = secret_exponent.public_key().as_bech32m()
@@ -120,11 +121,12 @@ def main():
                 parser.exit(
                     1, f"failed to remount device {args.device_to_mount} read/write"
                 )
-            cmd = f"/usr/bin/touch {wallet_path}.tmp && /usr/bin/rm {wallet_path}.tmp"
+            cmd = f"/usr/bin/touch {wallet_path}.tmp && /bin/rm {wallet_path}.tmp"
             r = os.system(cmd)
             if r != 0:
                 parser.exit(
-                    1, f"could not create temporary file `{wallet_path}.tmp`, drive permissions may be wrong"
+                    1,
+                    f"could not create temporary file `{wallet_path}.tmp`, drive permissions may be wrong",
                 )
         generate_secret(wallet_path)
     print()
