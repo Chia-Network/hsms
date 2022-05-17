@@ -166,7 +166,7 @@ def create_parser() -> argparse.ArgumentParser:
         action="append",
         default=[],
         help="file containing bech32m-encoded secret exponents. If file name ends with .gpg, "
-        '"gpg -d" will be invoked automatically. File is read one line at a time."',
+        '"gpg -d" will be invoked automatically. File is read one line at a time.',
         type=argparse.FileType("r"),
     )
     return parser
