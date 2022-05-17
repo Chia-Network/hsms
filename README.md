@@ -8,6 +8,10 @@ Install
 
 `$ pip install -e .`
 
+If on windows, you need one extra package:
+
+`$ pip install pyreadline`
+
 
 Tools
 -----
