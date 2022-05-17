@@ -1,18 +1,18 @@
 from tests.generate import se_generate, bytes32_generate, uint256_generate
 
-from hsms.atoms.ints import uint64
+from hsms.debug.debug_spend_bundle import debug_spend_bundle
 from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     DEFAULT_HIDDEN_PUZZLE,
     puzzle_for_public_key_and_hidden_puzzle,
     solution_for_conditions,
     calculate_synthetic_offset,
 )
-from hsms.streamables import Coin, CoinSpend, SpendBundle
+from hsms.streamables import bytes96, Coin, CoinSpend, SpendBundle
 from hsms.process.sign import sign, generate_synthetic_offset_signatures
 from hsms.process.signing_hints import SumHint, PathHint
 from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.puzzles.conlang import CREATE_COIN
-from hsms.util.debug_spend_bundle import debug_spend_bundle
+from hsms.util.byte_chunks import ChunkAssembler, create_chunks_for_blob
 
 
 AGG_SIG_ME_ADDITIONAL_DATA = bytes.fromhex(
@@ -110,6 +110,20 @@ def test_lifecycle():
         coin_spends, sum_hints, path_hints, AGG_SIG_ME_ADDITIONAL_DATA
     )
 
+    assert unsigned_spend == UnsignedSpend.from_chunks(unsigned_spend.chunk(500))
+
+    spend_chunks = create_chunks_for_blob(bytes(unsigned_spend), 250)
+    assembler = ChunkAssembler()
+    assembler.add_chunk(spend_chunks[0])
+    assembler.add_chunk(spend_chunks[0])
+    assert assembler.status() == (1, len(spend_chunks))
+    assert not assembler.is_assembled()
+    for i in range(1, len(spend_chunks)):
+        assembler.add_chunk(spend_chunks[i])
+    assert assembler.is_assembled()
+    assert assembler.status() == (len(spend_chunks), len(spend_chunks))
+    assert unsigned_spend == UnsignedSpend.from_bytes(assembler.assemble())
+
     print("-" * 10)
 
     # this simulates giving the `UnsignedSpend` to A and getting signatures back
@@ -138,4 +152,4 @@ def create_spend_bundle(unsigned_spend, signatures):
     all_signatures = [sig_info.signature for sig_info in signatures + extra_signatures]
     total_signature = sum(all_signatures, start=all_signatures[0].zero())
 
-    return SpendBundle(unsigned_spend.coin_spends, total_signature)
+    return SpendBundle(unsigned_spend.coin_spends, bytes96(total_signature))

@@ -1,7 +1,7 @@
 from typing import Any, Callable, Dict, List, Tuple, TypeVar
 
-from clvm import CLVMObject
 from clvm.casts import int_from_bytes
+from clvm.CLVMObject import CLVMObject
 
 
 K = TypeVar("K")
@@ -27,7 +27,7 @@ def transform_dict(program, dict_transformer_f):
 def transform_by_key(
     key: CLVMObject,
     value: CLVMObject,
-    transformation_lookup: Dict[str, Callable[[CLVMObject], Any]]
+    transformation_lookup: Dict[str, Callable[[CLVMObject], Any]],
 ) -> Tuple[str, Any]:
     """
     Use this if the key is utf-8 and the value decoding depends on the key.
@@ -38,7 +38,9 @@ def transform_by_key(
     return (key_str, final_value)
 
 
-def transform_dict_by_key(transformation_lookup: Dict[str, Callable[[CLVMObject], Any]]) -> Any:
+def transform_dict_by_key(
+    transformation_lookup: Dict[str, Callable[[CLVMObject], Any]]
+) -> Any:
     return lambda k, v: transform_by_key(k, v, transformation_lookup)
 
 

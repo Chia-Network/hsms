@@ -4,7 +4,7 @@
 import argparse
 
 from hsms.streamables import SpendBundle
-from hsms.util.debug_spend_bundle import debug_spend_bundle
+from hsms.debug.debug_spend_bundle import debug_spend_bundle
 
 
 def file_or_string(p) -> str:

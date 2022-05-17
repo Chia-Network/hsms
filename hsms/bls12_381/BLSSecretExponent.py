@@ -2,7 +2,7 @@ from typing import List, Optional
 
 import blspy
 
-from hsms.streamables import bytes32
+from hsms.atoms import bytes32
 
 from hsms.util.std_hash import std_hash
 from hsms.util.bech32 import bech32_decode, bech32_encode, Encoding

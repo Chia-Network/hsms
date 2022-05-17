@@ -9,6 +9,23 @@ Install
 `$ pip install -e .`
 
 
+Tools
+-----
+
+Command-line tools installed include:
+
+`hsms` - HSM sim that accepts `UnsignedSpend` objects and produces signatures, full or partial
+`hsmgen` - generate secret keys
+`hsmpk` - show public keys for secret keys
+`hsmmerge` - merge signatures for a multisig spend
+`qrint` - convert binary to/from qrint ascii
+
+For testing & debugging:
+
+`hsm_test_spend` - create a simple test `UnsignedSpend` multisig spend
+`hsm_dump_sb` - debug utility to dump information about a `SpendBundle`
+
+
 enscons
 -------
 
