@@ -8,6 +8,7 @@ import io
 import readline  # noqa: this allows long lines on stdin
 import subprocess
 import sys
+import zlib
 
 import segno
 
@@ -23,6 +24,16 @@ from hsms.util.qrint_encoding import a2b_qrint, b2a_qrint
 
 
 XCH_PER_MOJO = Decimal(1e12)
+
+
+def unsigned_spend_from_blob(blob: bytes) -> UnsignedSpend:
+    try:
+        uncompressed_blob = zlib.decompress(blob)
+        program = Program.from_bytes(uncompressed_blob)
+        return UnsignedSpend.from_program(program)
+    except Exception:
+        program = Program.from_bytes(blob)
+        return UnsignedSpend.from_program(program)
 
 
 def create_unsigned_spend_pipeline() -> Iterable[UnsignedSpend]:
@@ -42,8 +53,8 @@ def create_unsigned_spend_pipeline() -> Iterable[UnsignedSpend]:
             ca.add_chunk(blob)
             if ca.is_assembled():
                 del partial_encodings[part_count]
-                program = Program.from_bytes(ca.assemble())
-                yield UnsignedSpend.from_program(program)
+                blob = ca.assemble()
+                yield unsigned_spend_from_blob(blob)
         except EOFError:
             break
         except Exception as ex:

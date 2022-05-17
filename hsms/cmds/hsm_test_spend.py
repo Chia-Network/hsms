@@ -1,5 +1,6 @@
 import argparse
 import hashlib
+import zlib
 
 from hsms.bls12_381 import BLSPublicKey
 
@@ -78,8 +79,9 @@ def hsm_test_spend(args, parser):
     )
 
     b = bytes(unsigned_spend)
-    optimal_size = optimal_chunk_size_for_max_chunk_size(len(b), args.max_chunk_size)
-    chunks = create_chunks_for_blob(b, optimal_size)
+    cb = zlib.compress(b)
+    optimal_size = optimal_chunk_size_for_max_chunk_size(len(cb), args.max_chunk_size)
+    chunks = create_chunks_for_blob(cb, optimal_size)
     for chunk in chunks:
         print(b2a_qrint(chunk))
 
