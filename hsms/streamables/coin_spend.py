@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from .coin import Coin
 from .program import Program
 
+from hsms.atoms import bytes32, uint64
 from hsms.meta import streamable
 from hsms.util.clvm_serialization import transform_as_struct
 
