@@ -3,9 +3,7 @@ from dataclasses import dataclass
 from .coin import Coin
 from .program import Program
 
-from hsms.atoms import streamable
-from hsms.atoms.sized_bytes import bytes32
-from hsms.atoms.ints import uint64
+from hsms.meta import streamable
 from hsms.util.clvm_serialization import transform_as_struct
 
 @dataclass(frozen=True)

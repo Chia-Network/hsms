@@ -10,8 +10,8 @@ from clvm.serialize import sexp_from_stream, sexp_to_stream
 
 from clvm_tools.curry import curry
 
-from hsms.atoms import bin_methods, hexbytes
-from hsms.streamables import bytes32
+from hsms.atoms import hexbytes
+from hsms.meta import bin_methods
 
 
 class Program(SExp, bin_methods):
@@ -35,6 +35,9 @@ class Program(SExp, bin_methods):
         f = io.BytesIO()
         self.stream(f)  # type: ignore # noqa
         return hexbytes(f.getvalue())
+
+    def __hash__(self):
+        return bytes(self).__hash__()
 
     def __str__(self) -> str:
         return bytes(self).hex()
@@ -87,6 +90,27 @@ class Program(SExp, bin_methods):
 
     def run(self, args, max_cost=None, strict=False):
         return self.run_with_cost(args, max_cost, strict)[1]
+
+    def at(self, position: str) -> "Program":
+        """
+        Take a string of only `f` and `r` characters and follow the corresponding path.
+
+        Example:
+
+        `assert Program.to(17) == Program.to([10, 20, 30, [15, 17], 40, 50]).at("rrrfrf")`
+
+        """
+        v = self
+        for c in position.lower():
+            if c == "f":
+                v = Program.to(v.pair[0])
+            elif c == "r":
+                v = Program.to(v.pair[1])
+            else:
+                raise ValueError(
+                    f"`at` got illegal character `{c}`. Only `f` & `r` allowed"
+                )
+        return v
 
     def as_atom_list(self) -> Iterable[hexbytes]:
         """

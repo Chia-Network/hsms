@@ -3,7 +3,15 @@ import math
 from typing import List, Tuple
 
 
-def b2a_chunks(blob: bytes, bytes_per_chunk: int) -> List[bytes]:
+def optimal_chunk_size_for_max_chunk_size(full_size: int, max_chunk_size: int) -> int:
+    payload_size = max_chunk_size - 2
+    chunk_count = (full_size + payload_size - 1) // payload_size
+    optimal_payload_size = (full_size + chunk_count - 1) // chunk_count
+    optimal_chunk_size = optimal_payload_size + 2
+    return optimal_chunk_size
+
+
+def create_chunks_for_blob(blob: bytes, bytes_per_chunk: int) -> List[bytes]:
     total_len = len(blob)
 
     bytes_per_chunk -= 2
@@ -22,17 +30,11 @@ def b2a_chunks(blob: bytes, bytes_per_chunk: int) -> List[bytes]:
     return bundle_chunks
 
 
-def a2b_chunks(chunks: List[bytes]) -> bytes:
-    sorted_chunks = sorted(chunks, key=lambda c: c[-2])
-    bare_chunks = [c[:-2] for c in sorted_chunks]
-    return b"".join(bare_chunks)
-
-
 class ChunkAssembler:
     chunks: List[bytes]
 
-    def __init__(self):
-        self.chunks = []
+    def __init__(self, chunks=[]):
+        self.chunks = chunks
 
     def add_chunk(self, chunk: bytes):
         if chunk in self.chunks:
@@ -44,7 +46,6 @@ class ChunkAssembler:
             raise ValueError("chunk conflicts with already added chunk")
         else:
             self.chunks.append(chunk)
-            return
 
     def is_assembled(self) -> bool:
         if len(self.chunks) > 0 and self.chunks[0][-1] == len(self.chunks) - 1:
@@ -60,4 +61,10 @@ class ChunkAssembler:
             return len(self.chunks), self.chunks[0][-1] + 1
 
     def assemble(self) -> bytes:
-        return a2b_chunks(self.chunks)
+        sorted_chunks = sorted(self.chunks, key=lambda c: c[-2])
+        bare_chunks = [c[:-2] for c in sorted_chunks]
+        return b"".join(bare_chunks)
+
+
+def assemble_chunks(chunks: List[bytes]) -> bytes:
+    return ChunkAssembler(chunks).assemble()

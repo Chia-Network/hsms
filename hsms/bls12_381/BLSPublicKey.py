@@ -2,7 +2,7 @@ from typing import List
 
 import blspy
 
-from hsms.atoms.hexbytes import hexbytes
+from hsms.atoms import hexbytes
 from hsms.util.bech32 import bech32_decode, bech32_encode, Encoding
 
 BECH32M_PREFIX = "bls1238"

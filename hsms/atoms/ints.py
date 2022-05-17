@@ -1,4 +1,4 @@
-from .struct_stream import struct_stream
+from hsms.meta.struct_stream import struct_stream
 
 
 class int8(int, struct_stream):

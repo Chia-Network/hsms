@@ -3,8 +3,7 @@ from typing import List
 
 import io
 
-from hsms.atoms import uint32, hexbytes
-from hsms.bls12_381 import BLSSignature
+from hsms.atoms import bytes96, uint32, hexbytes
 
 from .coin_spend import CoinSpend
 
@@ -19,7 +18,7 @@ class SpendBundle:
     """
 
     coin_spends: List[CoinSpend]
-    aggregated_signature: BLSSignature
+    aggregated_signature: bytes96
 
     def __add__(self, other: "SpendBundle") -> "SpendBundle":
         return self.__class__(
@@ -40,5 +39,5 @@ class SpendBundle:
         f = io.BytesIO(blob)
         count = uint32.parse(f)
         coin_spends = [CoinSpend.parse(f) for _ in range(count)]
-        aggregated_signature = BLSSignature.from_bytes(f.read())
+        aggregated_signature = bytes96.from_bytes(f.read())
         return cls(coin_spends, aggregated_signature)
