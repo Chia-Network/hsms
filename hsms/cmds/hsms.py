@@ -36,7 +36,7 @@ def unsigned_spend_from_blob(blob: bytes) -> UnsignedSpend:
         return UnsignedSpend.from_program(program)
 
 
-def create_unsigned_spend_pipeline() -> Iterable[UnsignedSpend]:
+def create_unsigned_spend_pipeline(nochunks: bool) -> Iterable[UnsignedSpend]:
     print("waiting for qrint-encoded signing requests", file=sys.stderr)
     partial_encodings = {}
     while True:
@@ -47,12 +47,9 @@ def create_unsigned_spend_pipeline() -> Iterable[UnsignedSpend]:
                 break
             blob = a2b_qrint(line)
 
-            if partial_encodings == {}:
-                try:
-                    yield unsigned_spend_from_blob(blob)
-                    break
-                except Exception:
-                    pass
+            if nochunks:
+                yield unsigned_spend_from_blob(blob)
+                break
 
             part_count = blob[-1]
             if part_count not in partial_encodings:
@@ -128,7 +125,7 @@ def check_ok():
 
 def hsms(args, parser):
     wallet = parse_private_key_file(args)
-    unsigned_spend_pipeline = create_unsigned_spend_pipeline()
+    unsigned_spend_pipeline = create_unsigned_spend_pipeline(args.nochunks)
     for unsigned_spend in unsigned_spend_pipeline:
         if not args.yes:
             summarize_unsigned_spend(unsigned_spend)
@@ -162,6 +159,11 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--qr",
         help="show signature as QR code",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--nochunks",
+        help="read the spend in its entirety rather than as chunks (testing only)",
         action="store_true",
     )
     parser.add_argument(
