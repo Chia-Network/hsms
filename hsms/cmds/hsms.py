@@ -46,6 +46,14 @@ def create_unsigned_spend_pipeline() -> Iterable[UnsignedSpend]:
             if len(line) == 0:
                 break
             blob = a2b_qrint(line)
+
+            if partial_encodings == {}:
+                try:
+                    yield unsigned_spend_from_blob(blob)
+                    break
+                except Exception:
+                    pass
+
             part_count = blob[-1]
             if part_count not in partial_encodings:
                 partial_encodings[part_count] = ChunkAssembler()
