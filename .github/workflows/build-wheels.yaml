@@ -29,7 +29,7 @@ jobs:
         run: |
           . ./venv/bin/activate
           for FILE in dist/*.whl; do
-            auditwheel repair -w dist $FILE || true
+            auditwheel repair --no-update-tags -w dist $FILE || true
           done
 
       - uses: actions/upload-artifact@v3
