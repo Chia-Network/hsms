@@ -1,0 +1,38 @@
+name: Build Wheel Tree
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build-wheels:
+    runs-on: ubuntu-latest
+    container: quay.io/pypa/manylinux_2_24_x86_64
+    steps:
+      - name: Add safe git directory
+        uses: Chia-Network/actions/git-mark-workspace-safe@main
+
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Create venv
+        run: /opt/python/cp38-cp38/bin/python3 -m venv venv
+
+      - name: Create Wheels
+        run: |
+          . ./venv/bin/activate
+          pip wheel -w dist .
+
+      - name: Run audit wheel on all the wheels
+        run: |
+          . ./venv/bin/activate
+          for FILE in dist/*.whl; do
+            auditwheel repair --no-update-tags -w dist $FILE || true
+          done
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: wheels
+          path: ./dist
