@@ -1,4 +1,6 @@
-name: Build Wheels
+# The wheel here isn't platform specific, so can build on linux and it works anywhere
+name: Build Wheel
+
 on:
   push:
     branches:
@@ -12,22 +14,8 @@ concurrency:
 
 jobs:
   build-wheels:
-    runs-on: ${{ matrix.os.runs-on }}
-    container: ${{ matrix.os.container }}
-    strategy:
-      matrix:
-        python_version:
-          - version: "3.8"
-            path: "38"
-          - version: "3.9"
-            path: "39"
-          - version: "3.10"
-            path: "310"
-        os:
-          - container: "quay.io/pypa/manylinux_2_24_x86_64"
-            runs-on: "ubuntu-latest"
-          - container: "quay.io/pypa/manylinux_2_24_aarch64"
-            runs-on: ["linux", "arm64"]
+    runs-on: ubuntu-latest
+    container: quay.io/pypa/manylinux_2_24_x86_64
 
     steps:
       - name: Add safe git directory
@@ -38,12 +26,18 @@ jobs:
           fetch-depth: 0
 
       - name: Create venv
-        run: /opt/python/cp${{ matrix.python_version.path }}-cp${{ matrix.python_version.path }}/bin/python3 -m venv venv
+        run: /opt/python/cp38-cp38/bin/python3 -m venv venv
 
-      - name: Create Wheels
+      - name: Create Wheel
         run: |
           . ./venv/bin/activate
           pip wheel -w dist --no-deps .
+
+      - name: Create source dist
+        run: |
+          . ./venv/bin/activate
+          pip install build
+          python -m build --sdist --outdir dist .
 
       - uses: actions/upload-artifact@v3
         with:
