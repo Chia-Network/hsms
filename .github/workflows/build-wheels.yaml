@@ -11,7 +11,15 @@ jobs:
     container: ${{ matrix.os.container }}
     strategy:
       matrix:
-        python_version: ["3.7", "3.8", "3.9", "3.10"]
+        python_version:
+          - version: 3.7
+            path: 37
+          - version: 3.8
+            path: 38
+          - version: 3.9
+            path: 39
+          - version: 3.10
+            path: 310
         os:
           - container: "quay.io/pypa/manylinux_2_24_x86_64"
             runs-on: "ubuntu-latest"
@@ -27,7 +35,7 @@ jobs:
           fetch-depth: 0
 
       - name: Create venv
-        run: /opt/python/cp${{ matrix.python_version }}-cp${{ matrix.python_version }}/bin/python3 -m venv venv
+        run: /opt/python/cp${{ matrix.python_version.path }}-cp${{ matrix.python_version.path }}/bin/python3 -m venv venv
 
       - name: Create Wheels
         run: |
