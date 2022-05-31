@@ -17,8 +17,6 @@ jobs:
     strategy:
       matrix:
         python_version:
-          - version: 3.7
-            path: 37
           - version: 3.8
             path: 38
           - version: 3.9
