@@ -1,5 +1,6 @@
 from tests.generate import se_generate, bytes32_generate, uint256_generate
 
+from hsms.atoms.ints import uint64
 from hsms.debug.debug_spend_bundle import debug_spend_bundle
 from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     DEFAULT_HIDDEN_PUZZLE,

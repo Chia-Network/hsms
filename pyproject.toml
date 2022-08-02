@@ -6,13 +6,13 @@ license = "Apache-2.0"
 repository = "https://github.com/chia-network/hsms.git"
 readme = "README.md"
 src_root = "."
-dependencies = ["blspy==1.0.13", "segno==1.4.1", "clvm==0.9.7", "clvm_tools==0.4.4", "clvm_tools_rs==0.1.9"]
+dependencies = ["blspy==1.0.14", "segno==1.4.1", "clvm==0.9.7", "clvm_tools==0.4.5", "clvm_tools_rs==0.1.22"]
 packages = ["hsms"]
 # version is defined with `setuptools_scm`. See `SConstruct` file.
 
 [tool.enscons.optional_dependencies]
 test = ["nose", "coverage"]
-dev = ["flake8==4.0.1", "black==21.12b0"]
+dev = ["flake8>=4.0.1", "black>=22.6"]
 
 [tool.enscons.entry_points]
 console_scripts = [
