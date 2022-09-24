@@ -23,7 +23,7 @@ from hsms.util.byte_chunks import ChunkAssembler
 from hsms.util.qrint_encoding import a2b_qrint, b2a_qrint
 
 
-XCH_PER_MOJO = Decimal(1e12)
+XCH_PER_MOJO = Decimal("1e12")
 
 
 def unsigned_spend_from_blob(blob: bytes) -> UnsignedSpend:
