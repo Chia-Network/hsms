@@ -1,6 +1,5 @@
 from tests.generate import se_generate, bytes32_generate, uint256_generate
 
-from hsms.atoms.ints import uint64
 from hsms.debug.debug_spend_bundle import debug_spend_bundle
 from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     DEFAULT_HIDDEN_PUZZLE,
@@ -8,7 +7,7 @@ from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     solution_for_conditions,
     calculate_synthetic_offset,
 )
-from hsms.streamables import bytes32, bytes96, Coin, CoinSpend, SpendBundle
+from hsms.streamables import bytes96, Coin, CoinSpend, SpendBundle
 from hsms.process.sign import sign, generate_synthetic_offset_signatures
 from hsms.process.signing_hints import SumHint, PathHint
 from hsms.process.unsigned_spend import UnsignedSpend
@@ -65,7 +64,7 @@ def test_lifecycle():
         Coin(
             bytes32_generate(idx),
             puzzle.tree_hash(),
-            uint64(5 + (uint256_generate(idx) % COIN_MAX)),
+            5 + (uint256_generate(idx) % COIN_MAX),
         )
         for idx, puzzle in enumerate(puzzles)
     ]

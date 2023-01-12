@@ -16,7 +16,6 @@ def test_disassemble():
     check_disassemble("01", "1")
     check_disassemble("3f", "63")
 
-
     check_disassemble("8140", "64")
     check_disassemble("817f", "127")
     check_disassemble("8180", "-128")
@@ -60,9 +59,13 @@ def test_disassemble():
     check_disassemble("83666f6f", '"foo"')
 
     check_disassemble("ff8080", "(0)")
-    check_disassemble("ff83666f6fff8362617280", '("foo" "bar")');
-    check_disassemble("ff83666f6fff83626172ff8362617a836a6f62", '("foo" "bar" "baz" . "job")')
-    check_disassemble("ff83666f6fffff83626172ff8362617a80836a6f62", '("foo" ("bar" "baz") . "job")')
+    check_disassemble("ff83666f6fff8362617280", '("foo" "bar")')
+    check_disassemble(
+        "ff83666f6fff83626172ff8362617a836a6f62", '("foo" "bar" "baz" . "job")'
+    )
+    check_disassemble(
+        "ff83666f6fffff83626172ff8362617a80836a6f62", '("foo" ("bar" "baz") . "job")'
+    )
     check_disassemble("ff64ff8200c880", "(100 200)")
     check_disassemble("ff01ff02ff05ff0d80", "(q 2 5 13)")
     check_disassemble("ff02ff05ff0d80", "(a 5 13)")
