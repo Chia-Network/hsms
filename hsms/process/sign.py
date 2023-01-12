@@ -2,10 +2,12 @@ from dataclasses import dataclass
 from typing import Dict, Iterable, List, Optional, Tuple
 from weakref import WeakKeyDictionary
 
+from clvm_rs.program import Program
+
 from hsms.atoms import hexbytes
 from hsms.bls12_381 import BLSPublicKey, BLSSecretExponent
 from hsms.consensus.conditions import conditions_by_opcode
-from hsms.streamables import bytes32, CoinSpend, Program
+from hsms.streamables import bytes32, CoinSpend
 from hsms.puzzles.conlang import AGG_SIG_ME, AGG_SIG_UNSAFE
 
 from .signing_hints import SumHint, SumHints, PathHint, PathHints

@@ -1,17 +1,16 @@
 from typing import List
 
-from clvm import KEYWORD_FROM_ATOM
-from clvm_tools.binutils import disassemble as bu_disassemble
+from clvm_rs.program import Program
 
 from hsms.bls12_381 import BLSSignature
+from hsms.clvm.disasm import disassemble as bu_disassemble, KEYWORD_FROM_ATOM
 from hsms.consensus.conditions import conditions_by_opcode
 from hsms.process.sign import generate_verify_pairs
 from hsms.puzzles import conlang
-from hsms.streamables import Coin, Program
+from hsms.streamables import Coin
 from hsms.util.std_hash import std_hash
 
 KFA = {bytes([getattr(conlang, k)]): k for k in dir(conlang) if k[0] in "ACR"}
-
 
 AGG_SIG_ME_ADDITIONAL_DATA = bytes.fromhex(
     "ccd5bb71183532bff220ba46c268991a3ff07eb358e8255a65c30a2dce0e5fbb"

@@ -1,8 +1,8 @@
 import pathlib
 
 import pkg_resources
+from clvm_rs.program import Program
 from clvm_tools_rs import compile_clvm
-from hsms.streamables import Program
 
 
 def load_clvm(clvm_filename, package_or_requirement=__name__) -> Program:
