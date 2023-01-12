@@ -58,9 +58,10 @@ following mechanism:
 
 import hashlib
 
-from hsms.bls12_381 import BLSPublicKey, BLSSecretExponent
+from clvm_rs.program import Program
 
-from hsms.streamables import bytes32, Program
+from hsms.bls12_381 import BLSPublicKey, BLSSecretExponent
+from hsms.streamables import bytes32
 
 from .load_clvm import load_clvm
 from .p2_conditions import puzzle_for_conditions

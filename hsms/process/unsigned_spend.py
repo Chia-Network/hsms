@@ -3,9 +3,11 @@ import zlib
 from dataclasses import dataclass
 from typing import List
 
+from clvm_rs.program import Program
+
 from hsms.bls12_381 import BLSPublicKey, BLSSignature
 from hsms.process.signing_hints import SumHint, PathHint
-from hsms.streamables import bytes32, CoinSpend, Program
+from hsms.streamables import bytes32, CoinSpend
 from hsms.util.byte_chunks import assemble_chunks, create_chunks_for_blob
 from hsms.util.clvm_serialization import (
     transform_dict,

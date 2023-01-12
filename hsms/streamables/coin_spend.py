@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
+from clvm_rs.program import Program
+
 from .coin import Coin
-from .program import Program
 
 from hsms.atoms import bytes32, uint64
 from hsms.meta import streamable
@@ -39,7 +40,11 @@ class CoinSpend:
         puzzle_reveal = Program.to(puzzle_reveal)
         solution = Program.to(solution)
         return cls(
-            Coin(bytes32(parent_coin_info), puzzle_reveal.tree_hash(), uint64(amount)),
+            Coin(
+                bytes32(parent_coin_info),
+                bytes32(puzzle_reveal.tree_hash()),
+                uint64(amount),
+            ),
             puzzle_reveal,
             solution,
         )

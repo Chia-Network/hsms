@@ -2,11 +2,10 @@ import io
 
 from dataclasses import dataclass
 
-from clvm.casts import int_from_bytes, int_to_bytes
+from clvm_rs.program import Program
 
 from hsms.atoms import uint64
 from hsms.meta import streamable
-
 from hsms.util.std_hash import std_hash
 
 from . import bytes32
@@ -27,14 +26,14 @@ class Coin:
     def from_bytes(cls, blob):
         parent_coin_info = blob[:32]
         puzzle_hash = blob[32:64]
-        amount = int_from_bytes(blob[64:])
+        amount = Program.int_from_bytes(blob[64:])
         return Coin(bytes32(parent_coin_info), puzzle_hash, uint64(amount))
 
     def __bytes__(self):
         f = io.BytesIO()
         f.write(self.parent_coin_info)
         f.write(self.puzzle_hash)
-        f.write(int_to_bytes(self.amount))
+        f.write(Program.int_to_bytes(self.amount))
         return f.getvalue()
 
     def name(self) -> bytes32:
