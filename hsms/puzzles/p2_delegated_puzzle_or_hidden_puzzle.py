@@ -90,7 +90,7 @@ def calculate_synthetic_public_key(
     public_key: BLSPublicKey, hidden_puzzle_hash: bytes32
 ) -> BLSPublicKey:
     r = SYNTHETIC_MOD.run([bytes(public_key), hidden_puzzle_hash])
-    return BLSPublicKey.from_bytes(r.as_atom())
+    return BLSPublicKey.from_bytes(r.atom)
 
 
 def calculate_synthetic_secret_key(

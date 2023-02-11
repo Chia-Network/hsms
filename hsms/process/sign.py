@@ -125,15 +125,13 @@ def verify_pairs_for_conditions(
 
     agg_sig_me_conditions = d.get(AGG_SIG_ME, [])
     for condition in agg_sig_me_conditions:
-        condition_list = list(condition.as_atom_list())
-        yield BLSPublicKey.from_bytes(condition_list[1]), hexbytes(
-            condition_list[2] + agg_sig_me_message_suffix
+        yield BLSPublicKey.from_bytes(condition.at("rf").atom), hexbytes(
+            condition.at("rrf").atom + agg_sig_me_message_suffix
         )
 
     agg_sig_unsafe_conditions = d.get(AGG_SIG_UNSAFE, [])
     for condition in agg_sig_unsafe_conditions:
-        condition_list = list(condition.as_atom_list())
-        yield BLSPublicKey.from_bytes(condition_list[1]), hexbytes(condition[2])
+        yield BLSPublicKey.from_bytes(condition.at("rf"), hexbytes(condition.at("rrf")))
 
 
 def secret_key_for_public_key(

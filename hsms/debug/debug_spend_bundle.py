@@ -27,7 +27,7 @@ def disassemble(sexp):
     This version of `disassemble` also disassembles condition opcodes like `ASSERT_ANNOUNCEMENT_CONSUMED`.
     """
     kfa = dict(KEYWORD_FROM_ATOM)
-    kfa.update((Program.to(k).as_atom(), v) for k, v in KFA.items())
+    kfa.update((Program.to(k).atom, v) for k, v in KFA.items())
     return bu_disassemble(sexp, kfa)
 
 
