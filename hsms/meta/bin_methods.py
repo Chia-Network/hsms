@@ -7,7 +7,8 @@ from .hexbytes import hexbytes
 
 class bin_methods:
     """
-    Create "from_bytes" and "__bytes__" methods in terms of "parse" and "stream" methods.
+    Create "from_bytes" and "__bytes__" methods in terms of "parse" and "stream"
+    methods.
     """
 
     @classmethod

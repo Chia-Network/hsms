@@ -9,9 +9,9 @@ from hsms.util.clvm_serialization import transform_as_struct
 @streamable
 class CoinSpend:
     """
-    This is a rather disparate data structure that validates coin transfers. It's generally populated
-    with data from different sources, since burned coins are identified by name, so it is built up
-    more often that it is streamed.
+    This is a rather disparate data structure that validates coin transfers. It's
+    generally populated with data from different sources, since burned coins are
+    identified by name, so it is built up more often that it is streamed.
     """
 
     coin: Coin

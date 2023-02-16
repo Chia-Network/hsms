@@ -71,7 +71,10 @@ def create_parser():
     parser.add_argument(
         "-d",
         "--device-to-mount",
-        help="path, usually to something in `/dev/disk/` to ensure exists before attempting to mount",
+        help=(
+            "path, usually to something in `/dev/disk/` "
+            "to ensure exists before attempting to mount"
+        ),
     )
     parser.add_argument(
         "-r",
@@ -126,7 +129,8 @@ def main():
             if r != 0:
                 parser.exit(
                     1,
-                    f"could not create temporary file `{wallet_path}.tmp`, drive permissions may be wrong",
+                    f"could not create temporary file `{wallet_path}.tmp`, "
+                    f"drive permissions may be wrong",
                 )
         generate_secret(wallet_path)
     print()

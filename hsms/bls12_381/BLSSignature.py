@@ -14,7 +14,8 @@ ZERO96 = bytes96([0] * 96)
 @streamable
 class BLSSignature:
     """
-    This wraps the blspy version and resolves a couple edge cases around aggregation and validation.
+    This wraps the blspy version and resolves a couple edge cases
+    around aggregation and validation.
     """
 
     @streamable
