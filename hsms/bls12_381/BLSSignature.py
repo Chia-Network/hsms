@@ -44,7 +44,7 @@ class BLSSignature:
         return self.__class__(self._g2 + other._g2)
 
     def __eq__(self, other):
-        return bytes(self) == bytes(other)
+        return self._g2 == other._g2
 
     def __bytes__(self) -> bytes:
         return bytes(self._g2)

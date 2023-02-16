@@ -2,9 +2,13 @@ import io
 
 from clvm_rs.program import Program
 
+
+# this differs from clvm_tools in that it adds the single quote
+# and promises to handle it carefully
+
 PRINTABLE = (
     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    r"!#$%&'()*+,-./:;<=>?@[]^_`{|}~ "
+    r"""!"#$%&'()*+,-./:;<=>?@[]^_`{|}~ """
 )
 
 
@@ -16,8 +20,8 @@ def type_for_atom(atom) -> str:
                 if '"' in v:
                     if "'" in v:
                         return "H"
-                    return "SQ"
-                return "DQ"
+                    return "S"
+                return "D"
         except UnicodeDecodeError:
             pass
         return "H"
@@ -78,20 +82,14 @@ def format_program(f, sexp: Program, keyword_from_atom, is_first=False):
             return
 
     type = type_for_atom(atom)
-
-    if type == "I":
-        f.write("%d" % Program.int_from_bytes(atom))
-    elif type == "H":
-        f.write("0x%s" % atom.hex())
-    elif type == "DQ":
-        f.write('"%s"' % atom.decode("utf8"))
-    elif type == "SQ":
-        f.write("'%s'" % atom.decode("utf8"))
-    else:
-        try:
-            f.write(atom.decode("utf8"))
-        except UnicodeDecodeError:
-            f.write("(indecipherable symbol: %s)" % atom.hex())
+    assert type in "IHSD"
+    p_table = dict(
+        I=lambda a: "%d" % Program.int_from_bytes(a),
+        H=lambda a: "0x%s" % a.hex(),
+        D=lambda a: '"%s"' % a.decode("utf8"),
+        S=lambda a: "'%s'" % a.decode("utf8"),
+    )
+    f.write(p_table[type](atom))
 
 
 def disassemble(sexp, keyword_from_atom=KEYWORD_FROM_ATOM):

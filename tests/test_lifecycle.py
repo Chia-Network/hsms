@@ -69,6 +69,10 @@ def test_lifecycle():
         for idx, puzzle in enumerate(puzzles)
     ]
 
+    for coin in coins:
+        c = Coin.from_bytes(bytes(coin))
+        assert c == coin
+
     # the destination puzzle hashes are nonsense, but that's okay
     dest_puzzle_hashes = [
         bytes32_generate(idx, "dest") for idx, _ in enumerate(puzzles)
@@ -138,7 +142,9 @@ def test_lifecycle():
 
     signatures = signatures_A + signatures_B
     spend_bundle = create_spend_bundle(unsigned_spend, signatures)
-    print(bytes(spend_bundle))
+
+    sb2 = SpendBundle.from_bytes(bytes(spend_bundle))
+    assert sb2 == spend_bundle
 
     validates = debug_spend_bundle(spend_bundle)
     assert validates is True
