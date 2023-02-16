@@ -9,13 +9,10 @@ from hsms.util.bech32 import bech32_decode, bech32_encode, Encoding
 
 from .BLSSignature import BLSSignature
 from .BLSPublicKey import BLSPublicKey
+from .secret_key_utils import private_key_from_int
 
 
-BECH32M_PREFIX = "se"
-
-GROUP_ORDER = (
-    52435875175126190479447740508185965837690552500527637822603658699938581184513
-)
+BECH32M_SECRET_EXPONENT_PREFIX = "se"
 
 
 class BLSSecretExponent:
@@ -29,9 +26,7 @@ class BLSSecretExponent:
 
     @classmethod
     def from_int(cls, secret_exponent) -> "BLSSecretExponent":
-        secret_exponent %= GROUP_ORDER
-        blob = secret_exponent.to_bytes(32, "big")
-        return cls.from_bytes(blob)
+        return cls(private_key_from_int(secret_exponent))
 
     @classmethod
     def from_bytes(cls, blob) -> "BLSSecretExponent":
@@ -70,7 +65,7 @@ class BLSSecretExponent:
         return r
 
     def as_bech32m(self):
-        return bech32_encode(BECH32M_PREFIX, bytes(self), Encoding.BECH32M)
+        return bech32_encode(BECH32M_SECRET_EXPONENT_PREFIX, bytes(self), Encoding.BECH32M)
 
     @classmethod
     def from_bech32m(cls, text: str) -> "BLSSecretExponent":
@@ -79,7 +74,7 @@ class BLSSecretExponent:
             prefix, base8_data, encoding = r
             if (
                 encoding == Encoding.BECH32M
-                and prefix == BECH32M_PREFIX
+                and prefix == BECH32M_SECRET_EXPONENT_PREFIX
                 and len(base8_data) == 33
             ):
                 return cls.from_bytes(base8_data[:32])
@@ -96,7 +91,9 @@ class BLSSecretExponent:
         return self.secret_exponent()
 
     def __eq__(self, other):
-        return int(self) == int(other)
+        if isinstance(other, int):
+            other = BLSSecretExponent.from_int(other)
+        return self._sk == other._sk
 
     def __bytes__(self):
         return bytes(self._sk)

@@ -10,6 +10,8 @@ import subprocess
 import sys
 import zlib
 
+from clvm_rs.program import Program
+
 import segno
 
 from hsms.bls12_381.BLSSecretExponent import BLSSecretExponent, BLSSignature
@@ -17,7 +19,7 @@ from hsms.consensus.conditions import conditions_by_opcode
 from hsms.process.sign import conditions_for_coin_spend, sign
 from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.puzzles import conlang
-from hsms.streamables import bytes32, Program
+from hsms.streamables import bytes32
 from hsms.util.bech32 import bech32_encode
 from hsms.util.byte_chunks import ChunkAssembler
 from hsms.util.qrint_encoding import a2b_qrint, b2a_qrint

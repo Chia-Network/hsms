@@ -69,3 +69,11 @@ def test_disassemble():
     check_disassemble("ff64ff8200c880", "(100 200)")
     check_disassemble("ff01ff02ff05ff0d80", "(q 2 5 13)")
     check_disassemble("ff02ff05ff0d80", "(a 5 13)")
+
+    sq, dq = "'", '"'
+    # sq = single quote; dq = double quote
+    ev = f"{sq}{dq}foo{dq}{sq}"
+    check_disassemble("8522666f6f22", ev)
+
+    # we now do the seven character string "'foo'"
+    check_disassemble("872227666f6f2722", "0x2227666f6f2722")
