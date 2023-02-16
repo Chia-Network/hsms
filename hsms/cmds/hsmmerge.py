@@ -43,7 +43,9 @@ def hsmsmerge(args, parser):
 
 def create_parser():
     parser = argparse.ArgumentParser(
-        description="Create a signed `SpendBundle` from `UnsignedSpends` and signatures."
+        description=(
+            "Create a signed `SpendBundle` from `UnsignedSpends` " "and signatures."
+        )
     )
     parser.add_argument(
         "unsigned_spend",

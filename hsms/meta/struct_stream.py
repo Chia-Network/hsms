@@ -7,7 +7,8 @@ from .bin_methods import bin_methods
 
 class struct_stream(bin_methods):
     """
-    Create a class that can parse and stream itself based on a struct.pack template string.
+    Create a class that can parse and stream itself based on a struct.pack
+    template string.
     """
 
     @classmethod

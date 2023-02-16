@@ -1,7 +1,8 @@
 AGG_SIG_UNSAFE = 49
 AGG_SIG_ME = 50
 
-# the conditions below reserve coin amounts and have to be accounted for in output totals
+# the conditions below reserve coin amounts and
+# have to be accounted for in output totals
 
 CREATE_COIN = 51
 RESERVE_FEE = 52

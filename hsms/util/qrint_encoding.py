@@ -2,9 +2,9 @@
 This file implements the `qrint` encoding of binary data to a string of decimal digits.
 
 QR codes support different encoding modes, and generation tools typically choose them
-automatically. There is a binary QR code encoding, but it doesn't work well with hand-scanners
-since they act like keyboards, and most bytes can't be typed. So we need to encode the
-data in a keyboard-friends subset of ASCII.
+automatically. There is a binary QR code encoding, but it doesn't work well with
+hand-scanners since they act like keyboards, and most bytes can't be typed. So we need
+to encode the data in a keyboard-friends subset of ASCII.
 
 According to Wikipedia, the candidates are
 
