@@ -54,9 +54,9 @@ def create_parser():
     )
     parser.add_argument(
         "signature",
-        metavar="hex-encoded-signature",
+        metavar="qrint-encoded-signature",
         nargs="+",
-        help="hex-encoded signature",
+        help="qrint-encoded signature",
     )
     return parser
 
