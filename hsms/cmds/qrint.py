@@ -29,16 +29,22 @@ def file_or_string(p) -> str:
     return text
 
 
-def decode(path):
+def decode(path, hex_output):
     if path.endswith(".qri") and len(path) > 4:
         new_path = path[:-4]
     else:
-        new_path = path + ".bin"
+        new_path = path + (".hex" if hex_output else ".bin")
     if os.path.exists(new_path):
         raise ValueError(f"{new_path} already exists")
 
     blob = open(path).read().strip()
     decoded = a2b_qrint(blob)
+
+    if hex_output:
+        with open(new_path, "w") as f:
+            f.write(decoded.hex())
+        return
+
     with open(new_path, "wb") as f:
         f.write(decoded)
 
@@ -63,7 +69,7 @@ def qrint(args, parser):
     )
 
     if is_qrint:
-        return decode(args.path)
+        return decode(args.path, args.hex_output)
     else:
         return encode(args.path)
 
@@ -76,6 +82,7 @@ def create_parser():
         action="store_true",
         help="force conversion from binary to qrint",
     )
+    parser.add_argument("-H", "--hex-output", action="store_true", help="force convert to hex")
     parser.add_argument(
         "path",
         metavar="path-to-binary-or-qrint-file",
