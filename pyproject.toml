@@ -6,7 +6,7 @@ license = "Apache-2.0"
 repository = "https://github.com/chia-network/hsms.git"
 readme = "README.md"
 src_root = "."
-dependencies = ["blspy==1.0.16", "segno==1.4.1", "clvm==0.9.7", "clvm_tools==0.4.6", "clvm_tools_rs==0.1.30"]
+dependencies = ["blspy==1.0.16", "segno==1.4.1", "clvm_rs @ git+https://github.com/Chia-Network/clvm_rs@17196e726b073681dc2c2df14fcff4b5cf6e527b#egg=clvm_rs&subdirectory=wheel", "clvm_tools_rs==0.1.30"]
 packages = ["hsms"]
 # version is defined with `setuptools_scm`. See `SConstruct` file.
 
@@ -23,7 +23,9 @@ console_scripts = [
   "hsm_test_spend = hsms.cmds.hsm_test_spend:main",
   "hsm_dump_sb = hsms.cmds.hsm_dump_sb:main",
   "qrint = hsms.cmds.qrint:main",
-  "hsmwizard = hsms.cmds.hsmwizard:main"
+  "hsmwizard = hsms.cmds.hsmwizard:main",
+  "poser_gen = hsms.cmds.poser_gen:main",
+  "poser_verify = hsms.cmds.poser_verify:main"
 ]
 
 [build-system]
