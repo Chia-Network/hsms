@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - proof-of-secret-exponent
   pull_request:
 
 jobs:
