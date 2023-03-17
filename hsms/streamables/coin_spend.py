@@ -1,13 +1,16 @@
+from dataclasses import dataclass
+
 from clvm_rs.program import Program
+
+from chia_base.meta import Streamable
+
+from hsms.util.clvm_serialization import transform_as_struct
 
 from .coin import Coin
 
-from hsms.meta import streamable
-from hsms.util.clvm_serialization import transform_as_struct
 
-
-@streamable
-class CoinSpend:
+@dataclass
+class CoinSpend(Streamable):
     """
     This is a rather disparate data structure that validates coin transfers. It's
     generally populated with data from different sources, since burned coins are
@@ -44,3 +47,6 @@ class CoinSpend:
             puzzle_reveal,
             solution,
         )
+
+    def __hash__(self):
+        return hash(bytes(self))

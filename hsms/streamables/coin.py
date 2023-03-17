@@ -1,16 +1,18 @@
+from dataclasses import dataclass
+
 import io
 
-from clvm_rs.program import Program
+from chia_base.atoms import uint64
+from chia_base.meta import Streamable
+from chia_base.util.std_hash import std_hash
 
-from hsms.atoms import uint64
-from hsms.meta import streamable
-from hsms.util.std_hash import std_hash
+from clvm_rs.program import Program
 
 from . import bytes32
 
 
-@streamable
-class Coin:
+@dataclass
+class Coin(Streamable):
     """
     This structure is used in the body for the reward and fees genesis coins.
     """

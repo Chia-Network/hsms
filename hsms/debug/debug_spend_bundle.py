@@ -1,14 +1,15 @@
 from typing import List
 
+from chia_base.bls12_381 import BLSSignature
+from chia_base.util.std_hash import std_hash
+
 from clvm_rs.program import Program
 
-from hsms.bls12_381 import BLSSignature
 from hsms.clvm.disasm import disassemble as bu_disassemble, KEYWORD_FROM_ATOM
 from hsms.consensus.conditions import conditions_by_opcode
 from hsms.process.sign import generate_verify_pairs
 from hsms.puzzles import conlang
 from hsms.streamables import Coin
-from hsms.util.std_hash import std_hash
 
 KFA = {bytes([getattr(conlang, k)]): k for k in dir(conlang) if k[0] in "ACR"}
 
