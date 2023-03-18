@@ -5,10 +5,11 @@ import zlib
 
 from clvm_rs.program import Program
 
+from chia_base.atoms import bytes32
 from chia_base.bls12_381 import BLSPublicKey, BLSSignature
 
 from hsms.process.signing_hints import SumHint, PathHint
-from hsms.streamables import bytes32, CoinSpend
+from hsms.streamables import CoinSpend
 from hsms.util.byte_chunks import assemble_chunks, create_chunks_for_blob
 from hsms.util.clvm_serialization import (
     transform_dict,

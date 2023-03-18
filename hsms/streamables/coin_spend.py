@@ -1,52 +1,38 @@
-from dataclasses import dataclass
-
 from clvm_rs.program import Program
 
-from chia_base.meta import Streamable
+from chia_base.core import Coin, CoinSpend
 
 from hsms.util.clvm_serialization import transform_as_struct
 
-from .coin import Coin
 
 
-@dataclass
-class CoinSpend(Streamable):
-    """
-    This is a rather disparate data structure that validates coin transfers. It's
-    generally populated with data from different sources, since burned coins are
-    identified by name, so it is built up more often that it is streamed.
-    """
+def as_program(self):
+    return [
+        [_.coin.parent_coin_info, _.puzzle_reveal, _.coin.amount, _.solution]
+        for _ in self.coin_spends
+    ]
 
-    coin: Coin
-    puzzle_reveal: Program
-    solution: Program
 
-    def as_program(self):
-        return [
-            [_.coin.parent_coin_info, _.puzzle_reveal, _.coin.amount, _.solution]
-            for _ in self.coin_spends
-        ]
+def from_program(cls, program) -> "CoinSpend":
+    parent_coin_info, puzzle_reveal, amount, solution = transform_as_struct(
+        program,
+        lambda x: x.atom,
+        lambda x: x,
+        lambda x: Program.to(x).as_int(),
+        lambda x: x,
+    )
+    puzzle_reveal = Program.to(puzzle_reveal)
+    solution = Program.to(solution)
+    return cls(
+        Coin(
+            parent_coin_info,
+            puzzle_reveal.tree_hash(),
+            amount,
+        ),
+        puzzle_reveal,
+        solution,
+    )
 
-    @classmethod
-    def from_program(cls, program) -> "CoinSpend":
-        parent_coin_info, puzzle_reveal, amount, solution = transform_as_struct(
-            program,
-            lambda x: x.atom,
-            lambda x: x,
-            lambda x: Program.to(x).as_int(),
-            lambda x: x,
-        )
-        puzzle_reveal = Program.to(puzzle_reveal)
-        solution = Program.to(solution)
-        return cls(
-            Coin(
-                parent_coin_info,
-                puzzle_reveal.tree_hash(),
-                amount,
-            ),
-            puzzle_reveal,
-            solution,
-        )
 
-    def __hash__(self):
-        return hash(bytes(self))
+CoinSpend.as_program = as_program
+CoinSpend.from_program = classmethod(from_program)

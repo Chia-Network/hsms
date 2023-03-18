@@ -2,13 +2,13 @@ from dataclasses import dataclass
 from typing import Dict, Iterable, List, Optional, Tuple
 from weakref import WeakKeyDictionary
 
-from chia_base.atoms import hexbytes
+from chia_base.atoms import hexbytes, bytes32
 from chia_base.bls12_381 import BLSPublicKey, BLSSecretExponent
 
 from clvm_rs.program import Program
 
 from hsms.consensus.conditions import conditions_by_opcode
-from hsms.streamables import bytes32, CoinSpend
+from hsms.streamables import CoinSpend
 from hsms.puzzles.conlang import AGG_SIG_ME, AGG_SIG_UNSAFE
 
 from .signing_hints import SumHint, SumHints, PathHint, PathHints
