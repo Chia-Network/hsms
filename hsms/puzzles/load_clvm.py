@@ -1,8 +1,8 @@
 import pathlib
 
 import pkg_resources
-from clvm_rs.program import Program
-from clvm_tools_rs import compile_clvm
+
+from clvm_rs import Program
 
 
 def load_clvm(clvm_filename, package_or_requirement=__name__) -> Program:
@@ -18,6 +18,8 @@ def load_clvm(clvm_filename, package_or_requirement=__name__) -> Program:
     hex_filename = f"{clvm_filename}.hex"
 
     try:
+        from clvm_tools_rs import compile_clvm
+
         if pkg_resources.resource_exists(package_or_requirement, clvm_filename):
             full_path = pathlib.Path(
                 pkg_resources.resource_filename(package_or_requirement, clvm_filename)
@@ -31,8 +33,9 @@ def load_clvm(clvm_filename, package_or_requirement=__name__) -> Program:
                     str(full_path.parent.joinpath("include")),
                 ],
             )
-    except NotImplementedError:
+    except (NotImplementedError, ImportError):
         # pyinstaller doesn't support `pkg_resources.resource_exists`
+        # or `clvm_tools_rs` isn't installed
         # so we just fall through to loading the hex clvm
         pass
 

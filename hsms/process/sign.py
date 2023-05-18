@@ -5,7 +5,7 @@ from weakref import WeakKeyDictionary
 from chia_base.atoms import hexbytes, bytes32
 from chia_base.bls12_381 import BLSPublicKey, BLSSecretExponent
 
-from clvm_rs.program import Program
+from clvm_rs import Program
 
 from hsms.consensus.conditions import conditions_by_opcode
 from hsms.streamables import CoinSpend

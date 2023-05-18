@@ -3,7 +3,7 @@ from typing import List
 
 import zlib
 
-from clvm_rs.program import Program
+from clvm_rs import Program
 
 from chia_base.atoms import bytes32
 from chia_base.bls12_381 import BLSPublicKey, BLSSignature

@@ -10,7 +10,7 @@ require a delegated puzzle program, so in those cases, this is just what
 the doctor ordered.
 """
 
-from clvm_rs.program import Program
+from clvm_rs import Program
 
 from .load_clvm import load_clvm
 

@@ -4,10 +4,11 @@ from typing import List
 
 import argparse
 
-from hsms.bls12_381.BLSSecretExponent import BLSSignature
+from chia_base.bls12_381 import BLSSignature
+from chia_base.core import SpendBundle
+
 from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.process.sign import generate_synthetic_offset_signatures
-from hsms.streamables import bytes96, SpendBundle
 from hsms.util.qrint_encoding import a2b_qrint
 
 
@@ -19,7 +20,7 @@ def create_spend_bundle(unsigned_spend: UnsignedSpend, signatures: List[BLSSigna
     all_signatures = signatures + [sig_info.signature for sig_info in extra_signatures]
     total_signature = sum(all_signatures, start=all_signatures[0].zero())
 
-    return SpendBundle(unsigned_spend.coin_spends, bytes96(total_signature))
+    return SpendBundle(unsigned_spend.coin_spends, total_signature)
 
 
 def file_or_string(p) -> str:

@@ -6,7 +6,7 @@ license = "Apache-2.0"
 repository = "https://github.com/chia-network/hsms.git"
 readme = "README.md"
 src_root = "."
-dependencies = ["blspy==1.0.14", "segno==1.4.1", "clvm==0.9.7", "clvm_tools==0.4.5", "clvm_tools_rs==0.1.22"]
+dependencies = ["segno==1.4.1", "chia_base @ git+https://github.com/richardkiss/chia_base.git@7805f5befa0afe74a429eebe0f3371f42e37a1a7#egg=chia_base"]
 packages = ["hsms"]
 # version is defined with `setuptools_scm`. See `SConstruct` file.
 
@@ -27,5 +27,5 @@ console_scripts = [
 ]
 
 [build-system]
-requires = ["pytoml>=0.1", "enscons", "setuptools_scm>=6.2"]
+requires = ["pytoml>=0.1", "enscons", "setuptools_scm>=6.2", "clvm_tools_rs==0.1.22"]
 build-backend = "enscons.api"

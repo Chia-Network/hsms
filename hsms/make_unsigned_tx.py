@@ -1,6 +1,6 @@
 import hashlib
 
-from clvm_rs.program import Program
+from clvm_rs import Program
 
 from hsms.meta.hexbytes import hexbytes
 from hsms.multisig.pst import PartiallySignedTransaction

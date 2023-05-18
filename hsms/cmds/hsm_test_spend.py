@@ -2,11 +2,9 @@ import argparse
 import hashlib
 import zlib
 
-from clvm_rs.program import Program
+from clvm_rs import Program
 
-from hsms.bls12_381 import BLSPublicKey
-
-from hsms.process.signing_hints import SumHint, PathHint
+from chia_base.bls12_381 import BLSPublicKey
 
 from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     DEFAULT_HIDDEN_PUZZLE,
@@ -14,9 +12,10 @@ from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     solution_for_conditions,
     calculate_synthetic_offset,
 )
-from hsms.streamables import Coin, CoinSpend
+from hsms.process.signing_hints import SumHint, PathHint
 from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.puzzles.conlang import CREATE_COIN
+from hsms.streamables import Coin, CoinSpend
 from hsms.util.byte_chunks import (
     create_chunks_for_blob,
     optimal_chunk_size_for_max_chunk_size,

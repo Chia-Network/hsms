@@ -59,7 +59,7 @@ following mechanism:
 
 import hashlib
 
-from clvm_rs.program import Program
+from clvm_rs import Program
 
 from chia_base.atoms import bytes32
 from chia_base.bls12_381 import BLSPublicKey, BLSSecretExponent

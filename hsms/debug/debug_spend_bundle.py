@@ -3,7 +3,7 @@ from typing import List
 from chia_base.bls12_381 import BLSSignature
 from chia_base.util.std_hash import std_hash
 
-from clvm_rs.program import Program
+from clvm_rs import Program
 
 from hsms.clvm.disasm import disassemble as bu_disassemble, KEYWORD_FROM_ATOM
 from hsms.consensus.conditions import conditions_by_opcode

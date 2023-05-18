@@ -10,17 +10,17 @@ import subprocess
 import sys
 import zlib
 
-from clvm_rs.program import Program
+from chia_base.bls12_381 import BLSSecretExponent, BLSSignature
+from chia_base.util.bech32 import bech32_encode
+
+from clvm_rs import Program
 
 import segno
 
-from hsms.bls12_381.BLSSecretExponent import BLSSecretExponent, BLSSignature
 from hsms.consensus.conditions import conditions_by_opcode
 from hsms.process.sign import conditions_for_coin_spend, sign
 from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.puzzles import conlang
-from hsms.streamables import bytes32
-from hsms.util.bech32 import bech32_encode
 from hsms.util.byte_chunks import ChunkAssembler
 from hsms.util.qrint_encoding import a2b_qrint, b2a_qrint
 
@@ -116,7 +116,7 @@ def summarize_unsigned_spend(unsigned_spend: UnsignedSpend):
     print(file=sys.stderr)
 
 
-def address_for_puzzle_hash(puzzle_hash: bytes32) -> str:
+def address_for_puzzle_hash(puzzle_hash: bytes) -> str:
     return bech32_encode("xch", puzzle_hash)
 
 

@@ -1,4 +1,4 @@
-from clvm_rs.program import Program
+from clvm_rs import Program
 
 from chia_base.core import Coin, CoinSpend
 
