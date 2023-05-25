@@ -5,7 +5,6 @@ from chia_base.core import Coin, CoinSpend
 from hsms.util.clvm_serialization import transform_as_struct
 
 
-
 def as_program(self):
     return [
         [_.coin.parent_coin_info, _.puzzle_reveal, _.coin.amount, _.solution]

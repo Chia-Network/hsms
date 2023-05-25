@@ -77,6 +77,8 @@ MOD = load_clvm("p2_delegated_puzzle_or_hidden_puzzle.cl")
 
 SYNTHETIC_MOD = load_clvm("calculate_synthetic_public_key.cl")
 
+MAX_COST = 1 << 24
+
 
 def calculate_synthetic_offset(
     public_key: BLSPublicKey, hidden_puzzle_hash: bytes32
@@ -90,7 +92,9 @@ def calculate_synthetic_offset(
 def calculate_synthetic_public_key(
     public_key: BLSPublicKey, hidden_puzzle_hash: bytes32
 ) -> BLSPublicKey:
-    r = SYNTHETIC_MOD.run([bytes(public_key), hidden_puzzle_hash])
+    _cost, r = SYNTHETIC_MOD.run_with_cost(
+        [bytes(public_key), hidden_puzzle_hash], max_cost=MAX_COST
+    )
     return BLSPublicKey.from_bytes(r.atom)
 
 

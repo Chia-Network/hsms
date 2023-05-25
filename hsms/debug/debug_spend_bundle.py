@@ -17,6 +17,8 @@ AGG_SIG_ME_ADDITIONAL_DATA = bytes.fromhex(
     "ccd5bb71183532bff220ba46c268991a3ff07eb358e8255a65c30a2dce0e5fbb"
 )
 
+MAX_COST = 1 << 34
+
 
 # information needed to spend a cc
 # if we ever support more genesis conditions, like a re-issuable coin,
@@ -83,7 +85,7 @@ def debug_spend_bundle(
             f"\nbrun -y main.sym '{bu_disassemble(puzzle_reveal)}'"
             f" '{bu_disassemble(solution)}'"
         )
-        r = puzzle_reveal.run(solution)
+        cost, r = puzzle_reveal.run_with_cost(solution, max_cost=MAX_COST)
         conditions = conditions_by_opcode(r)
         error = None
         if error:
@@ -95,6 +97,7 @@ def debug_spend_bundle(
                 pks.append(public_key)
                 msgs.append(m)
             print()
+            print(f"cost = {cost}")
             print(disassemble(r))
             print()
             if conditions and len(conditions) > 0:
