@@ -1,11 +1,13 @@
-from typing import List
+from typing import BinaryIO, List
 
 import blspy
 
-from hsms.atoms import hexbytes
-from hsms.util.bech32 import bech32_decode, bech32_encode, Encoding
+from ..atoms import hexbytes
+from ..util.bech32 import bech32_decode, bech32_encode, Encoding
 
-BECH32M_PREFIX = "bls1238"
+from .secret_key_utils import public_key_from_int
+
+BECH32M_PUBLIC_KEY_PREFIX = "bls1238"
 
 
 class BLSPublicKey:
@@ -19,6 +21,10 @@ class BLSPublicKey:
         return BLSPublicKey(bls_public_hd_key)
 
     @classmethod
+    def parse(cls, f: BinaryIO):
+        return cls.from_bytes(f.read(48))
+
+    @classmethod
     def generator(cls):
         return BLSPublicKey(blspy.G1Element.generator())
 
@@ -26,10 +32,16 @@ class BLSPublicKey:
     def zero(cls):
         return cls(blspy.G1Element())
 
+    def stream(self, f: BinaryIO) -> None:
+        f.write(bytes(self._g1))
+
     def __add__(self, other):
         return BLSPublicKey(self._g1 + other._g1)
 
     def __mul__(self, other):
+        if self == self.generator():
+            # this would be subject to timing attacks
+            return BLSPublicKey(public_key_from_int(other))
         if other == 0:
             return self.zero()
         if other == 1:
@@ -45,7 +57,7 @@ class BLSPublicKey:
         return self.__mul__(other)
 
     def __eq__(self, other):
-        return bytes(self) == bytes(other)
+        return self._g1 == other._g1
 
     def __bytes__(self) -> bytes:
         return hexbytes(self._g1)
@@ -65,7 +77,7 @@ class BLSPublicKey:
         return self._g1.get_fingerprint()
 
     def as_bech32m(self):
-        return bech32_encode(BECH32M_PREFIX, bytes(self), Encoding.BECH32M)
+        return bech32_encode(BECH32M_PUBLIC_KEY_PREFIX, bytes(self), Encoding.BECH32M)
 
     @classmethod
     def from_bech32m(cls, text: str) -> "BLSPublicKey":
@@ -74,7 +86,7 @@ class BLSPublicKey:
             prefix, base8_data, encoding = r
             if (
                 encoding == Encoding.BECH32M
-                and prefix == BECH32M_PREFIX
+                and prefix == BECH32M_PUBLIC_KEY_PREFIX
                 and len(base8_data) == 49
             ):
                 return cls.from_bytes(base8_data[:48])
