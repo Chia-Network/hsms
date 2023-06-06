@@ -43,7 +43,9 @@ def hsmsmerge(args, parser):
 
 def create_parser():
     parser = argparse.ArgumentParser(
-        description="Create a signed `SpendBundle` from `UnsignedSpends` and signatures."
+        description=(
+            "Create a signed `SpendBundle` from `UnsignedSpends` " "and signatures."
+        )
     )
     parser.add_argument(
         "unsigned_spend",
@@ -52,9 +54,9 @@ def create_parser():
     )
     parser.add_argument(
         "signature",
-        metavar="hex-encoded-signature",
+        metavar="qrint-encoded-signature",
         nargs="+",
-        help="hex-encoded signature",
+        help="qrint-encoded signature",
     )
     return parser
 

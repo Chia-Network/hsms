@@ -84,16 +84,16 @@ def test_lifecycle():
     ]
     coin_spends = [CoinSpend(*triple) for triple in zip(coins, puzzles, solutions)]
 
-    # create the "sum hints" which give information on how the public keys that appear in
-    # the `AGG_SIG_ME` conditions were constructed
+    # create the "sum hints" which give information on how the public keys that
+    # appear in the `AGG_SIG_ME` conditions were constructed
 
     sum_hints = [
         SumHint([a_pk, b_pk], synthetic_se)
         for a_pk, b_pk, synthetic_se in zip(pks_A, pks_B, synthetic_se_list)
     ]
 
-    # create the "path hints" which give information on how to get from the root public key
-    # to the public keys used as inputs to the sum keys
+    # create the "path hints" which give information on how to get from the
+    # root public key to the public keys used as inputs to the sum keys
     #
     # If the public key is also the root public key, you don't need this hint
 

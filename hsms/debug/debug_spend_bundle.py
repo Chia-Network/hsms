@@ -25,7 +25,8 @@ AGG_SIG_ME_ADDITIONAL_DATA = bytes.fromhex(
 
 def disassemble(sexp):
     """
-    This version of `disassemble` also disassembles condition opcodes like `ASSERT_ANNOUNCEMENT_CONSUMED`.
+    This version of `disassemble` also disassembles condition opcodes like
+    `ASSERT_ANNOUNCEMENT_CONSUMED`.
     """
     kfa = dict(KEYWORD_FROM_ATOM)
     kfa.update((Program.to(k).as_atom(), v) for k, v in KFA.items())
@@ -47,8 +48,8 @@ def debug_spend_bundle(
     spend_bundle, agg_sig_additional_data=AGG_SIG_ME_ADDITIONAL_DATA
 ) -> None:
     """
-    Print a lot of useful information about a `SpendBundle` that might help with debugging
-    its clvm.
+    Print a lot of useful information about a `SpendBundle` that might help with
+    debugging its clvm.
     """
 
     pks = []
@@ -69,7 +70,8 @@ def debug_spend_bundle(
         if puzzle_reveal.tree_hash() != coin_spend.coin.puzzle_hash:
             print("*** BAD PUZZLE REVEAL")
             print(
-                f"{puzzle_reveal.tree_hash().hex()} vs {coin_spend.coin.puzzle_hash.hex()}"
+                f"{puzzle_reveal.tree_hash().hex()} vs"
+                f" {coin_spend.coin.puzzle_hash.hex()}"
             )
             print("*" * 80)
             continue
@@ -78,7 +80,8 @@ def debug_spend_bundle(
         print(f"  with id {coin_name}")
         print()
         print(
-            f"\nbrun -y main.sym '{bu_disassemble(puzzle_reveal)}' '{bu_disassemble(solution)}'"
+            f"\nbrun -y main.sym '{bu_disassemble(puzzle_reveal)}'"
+            f" '{bu_disassemble(solution)}'"
         )
         r = puzzle_reveal.run(solution)
         conditions = conditions_by_opcode(r)
@@ -190,9 +193,8 @@ def debug_spend_bundle(
         print(f"zero_coin_set = {sorted(zero_coin_set)}")
         print()
         if created_coin_announcement_pairs or asserted_coin_announcements:
-            print(
-                f"created  coin announcements = {sorted([_[-1] for _ in created_coin_announcement_pairs])}"
-            )
+            sa = sorted([_[-1] for _ in created_coin_announcement_pairs])
+            print(f"created  coin announcements = {sa}")
             print()
             print(
                 f"asserted coin announcements = {sorted(asserted_coin_announcements)}"
@@ -201,16 +203,17 @@ def debug_spend_bundle(
             print(f"symdiff of coin announcements = {sorted(eor_coin_announcements)}")
             print()
         if created_puzzle_announcement_pairs or asserted_puzzle_announcements:
+            sa = sorted([_[-1] for _ in created_puzzle_announcement_pairs])
+            print(f"created  puzzle announcements = {sa}")
+            print()
             print(
-                f"created  puzzle announcements = {sorted([_[-1] for _ in created_puzzle_announcement_pairs])}"
+                f"asserted puzzle announcements ="
+                f" {sorted(asserted_puzzle_announcements)}"
             )
             print()
             print(
-                f"asserted puzzle announcements = {sorted(asserted_puzzle_announcements)}"
-            )
-            print()
-            print(
-                f"symdiff of puzzle announcements = {sorted(eor_puzzle_announcements)}"
+                f"symdiff of puzzle announcements ="
+                f" {sorted(eor_puzzle_announcements)}"
             )
             print()
     print()
