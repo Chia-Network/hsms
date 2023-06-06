@@ -1,24 +1,22 @@
-from typing import Iterator, List, Tuple
+from dataclasses import dataclass
+from typing import BinaryIO, Iterator, List, Tuple
 
 import blspy
 
-from hsms.meta import streamable
+from ..atoms import bytes32, bytes96
 
-from hsms.streamables import bytes32, bytes96
-
-from .BLSPublicKey import BLSPublicKey
+from .bls_public_key import BLSPublicKey
 
 ZERO96 = bytes96([0] * 96)
 
 
-@streamable
 class BLSSignature:
     """
     This wraps the blspy version and resolves a couple edge cases
     around aggregation and validation.
     """
 
-    @streamable
+    @dataclass
     class aggsig_pair:
         public_key: BLSPublicKey
         message_hash: bytes32
@@ -33,12 +31,19 @@ class BLSSignature:
         return cls(bls_public_hd_key)
 
     @classmethod
+    def parse(cls, f: BinaryIO):
+        return cls.from_bytes(bytes96.parse(f))
+
+    @classmethod
     def generator(cls):
         return cls(blspy.G2Element.generator())
 
     @classmethod
     def zero(cls):
         return cls(blspy.G2Element())
+
+    def stream(self, f):
+        f.write(bytes(self._g2))
 
     def __add__(self, other):
         return self.__class__(self._g2 + other._g2)

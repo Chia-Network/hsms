@@ -1,14 +1,13 @@
-from typing import List, Optional
+from typing import BinaryIO, List, Optional
 
 import blspy
 
-from hsms.atoms import bytes32
+from ..atoms import bytes32
+from ..util.std_hash import std_hash
+from ..util.bech32 import bech32_decode, bech32_encode, Encoding
 
-from hsms.util.std_hash import std_hash
-from hsms.util.bech32 import bech32_decode, bech32_encode, Encoding
-
-from .BLSSignature import BLSSignature
-from .BLSPublicKey import BLSPublicKey
+from .bls_public_key import BLSPublicKey
+from .bls_signature import BLSSignature
 from .secret_key_utils import private_key_from_int
 
 
@@ -31,6 +30,13 @@ class BLSSecretExponent:
     @classmethod
     def from_bytes(cls, blob) -> "BLSSecretExponent":
         return cls(blspy.PrivateKey.from_bytes(blob))
+
+    @classmethod
+    def parse(cls, f: BinaryIO):
+        return cls.from_bytes(f.read(32))
+
+    def stream(self, f: BinaryIO) -> None:
+        f.write(bytes(self._sk))
 
     def fingerprint(self) -> int:
         return self._sk.get_g1().get_fingerprint()
@@ -65,7 +71,9 @@ class BLSSecretExponent:
         return r
 
     def as_bech32m(self):
-        return bech32_encode(BECH32M_SECRET_EXPONENT_PREFIX, bytes(self), Encoding.BECH32M)
+        return bech32_encode(
+            BECH32M_SECRET_EXPONENT_PREFIX, bytes(self), Encoding.BECH32M
+        )
 
     @classmethod
     def from_bech32m(cls, text: str) -> "BLSSecretExponent":

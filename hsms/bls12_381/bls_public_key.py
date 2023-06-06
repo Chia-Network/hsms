@@ -1,9 +1,9 @@
-from typing import List
+from typing import BinaryIO, List
 
 import blspy
 
-from hsms.atoms import hexbytes
-from hsms.util.bech32 import bech32_decode, bech32_encode, Encoding
+from ..atoms import hexbytes
+from ..util.bech32 import bech32_decode, bech32_encode, Encoding
 
 from .secret_key_utils import public_key_from_int
 
@@ -21,12 +21,19 @@ class BLSPublicKey:
         return BLSPublicKey(bls_public_hd_key)
 
     @classmethod
+    def parse(cls, f: BinaryIO):
+        return cls.from_bytes(f.read(48))
+
+    @classmethod
     def generator(cls):
         return BLSPublicKey(blspy.G1Element.generator())
 
     @classmethod
     def zero(cls):
         return cls(blspy.G1Element())
+
+    def stream(self, f: BinaryIO) -> None:
+        f.write(bytes(self._g1))
 
     def __add__(self, other):
         return BLSPublicKey(self._g1 + other._g1)

@@ -14,7 +14,7 @@ from clvm_rs.program import Program
 
 import segno
 
-from hsms.bls12_381.BLSSecretExponent import BLSSecretExponent, BLSSignature
+from hsms.bls12_381 import BLSSecretExponent, BLSSignature
 from hsms.consensus.conditions import conditions_by_opcode
 from hsms.process.sign import conditions_for_coin_spend, sign
 from hsms.process.unsigned_spend import UnsignedSpend

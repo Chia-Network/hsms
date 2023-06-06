@@ -4,7 +4,7 @@ from typing import List
 
 import argparse
 
-from hsms.bls12_381.BLSSecretExponent import BLSSignature
+from hsms.bls12_381 import BLSSignature
 from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.process.sign import generate_synthetic_offset_signatures
 from hsms.streamables import bytes96, SpendBundle
