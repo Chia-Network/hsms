@@ -59,9 +59,10 @@ following mechanism:
 
 import hashlib
 
-from hsms.bls12_381 import BLSPublicKey, BLSSecretExponent
+from clvm_rs.program import Program
 
-from hsms.streamables import bytes32, Program
+from hsms.bls12_381 import BLSPublicKey, BLSSecretExponent
+from hsms.streamables import bytes32
 
 from .load_clvm import load_clvm
 from .p2_conditions import puzzle_for_conditions
@@ -89,8 +90,10 @@ def calculate_synthetic_offset(
 def calculate_synthetic_public_key(
     public_key: BLSPublicKey, hidden_puzzle_hash: bytes32
 ) -> BLSPublicKey:
-    r = SYNTHETIC_MOD.run([bytes(public_key), hidden_puzzle_hash])
-    return BLSPublicKey.from_bytes(r.as_atom())
+    _cost, r = SYNTHETIC_MOD.run_with_cost(
+        [bytes(public_key), hidden_puzzle_hash], max_cost=1 << 32
+    )
+    return BLSPublicKey.from_bytes(r.atom)
 
 
 def calculate_synthetic_secret_key(
@@ -120,12 +123,6 @@ def puzzle_for_public_key_and_hidden_puzzle(
 ) -> Program:
     return puzzle_for_public_key_and_hidden_puzzle_hash(
         public_key, hidden_puzzle.tree_hash()
-    )
-
-
-def puzzle_for_pk(public_key: BLSPublicKey) -> Program:
-    return puzzle_for_public_key_and_hidden_puzzle_hash(
-        public_key, DEFAULT_HIDDEN_PUZZLE_HASH
     )
 
 

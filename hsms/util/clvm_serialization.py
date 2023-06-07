@@ -1,7 +1,6 @@
 from typing import Any, Callable, Dict, List, Tuple, TypeVar
 
-from clvm.casts import int_from_bytes
-from clvm.CLVMObject import CLVMObject
+from clvm_rs.program import Program
 
 
 K = TypeVar("K")
@@ -25,9 +24,9 @@ def transform_dict(program, dict_transformer_f):
 
 
 def transform_by_key(
-    key: CLVMObject,
-    value: CLVMObject,
-    transformation_lookup: Dict[str, Callable[[CLVMObject], Any]],
+    key: Program,
+    value: Program,
+    transformation_lookup: Dict[str, Callable[[Program], Any]],
 ) -> Tuple[str, Any]:
     """
     Use this if the key is utf-8 and the value decoding depends on the key.
@@ -39,12 +38,12 @@ def transform_by_key(
 
 
 def transform_dict_by_key(
-    transformation_lookup: Dict[str, Callable[[CLVMObject], Any]]
+    transformation_lookup: Dict[str, Callable[[Program], Any]]
 ) -> Any:
     return lambda k, v: transform_by_key(k, v, transformation_lookup)
 
 
-def transform_as_struct(items: CLVMObject, *struct_transformers) -> Tuple[Any, ...]:
+def transform_as_struct(items: Program, *struct_transformers) -> Tuple[Any, ...]:
     r = []
     for f in struct_transformers:
         r.append(f(items.pair[0]))
@@ -53,7 +52,7 @@ def transform_as_struct(items: CLVMObject, *struct_transformers) -> Tuple[Any, .
 
 
 def clvm_to_list(
-    item_list: CLVMObject, item_transformation_f: Callable[[CLVMObject], T]
+    item_list: Program, item_transformation_f: Callable[[Program], T]
 ) -> List[T]:
     r = []
     while item_list.pair:
@@ -63,18 +62,18 @@ def clvm_to_list(
 
 
 def clvm_list_of_bytes_to_list(
-    items: CLVMObject, from_bytes_f: Callable[[bytes], T]
+    items: Program, from_bytes_f: Callable[[bytes], T]
 ) -> List[T]:
     return clvm_to_list(items, lambda obj: from_bytes_f(obj.atom))
 
 
-def clvm_to_list_of_ints(items: CLVMObject) -> List[int]:
-    return clvm_to_list(items, lambda obj: int_from_bytes(obj.atom))
+def clvm_to_list_of_ints(items: Program) -> List[int]:
+    return clvm_to_list(items, lambda obj: Program.to(obj).as_int())
 
 
 def clvm_list_to_dict(
-    items: CLVMObject,
-    from_clvm_f_to_kv: Callable[[CLVMObject, CLVMObject], Tuple[K, V]],
+    items: Program,
+    from_clvm_f_to_kv: Callable[[Program, Program], Tuple[K, V]],
 ) -> Dict[K, V]:
     r = clvm_to_list(items, lambda obj: from_clvm_f_to_kv(obj.pair[0], obj.pair[1]))
     return dict(r)

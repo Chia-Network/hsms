@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
+from clvm_rs import Program
+
 from .coin import Coin
-from .program import Program
 
 from hsms.atoms import bytes32, uint64
 from hsms.meta import streamable

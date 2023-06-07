@@ -2,6 +2,8 @@ import argparse
 import hashlib
 import zlib
 
+from clvm_rs.program import Program
+
 from hsms.bls12_381 import BLSPublicKey
 
 from hsms.process.signing_hints import SumHint, PathHint
@@ -12,7 +14,7 @@ from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     solution_for_conditions,
     calculate_synthetic_offset,
 )
-from hsms.streamables import Coin, CoinSpend, Program
+from hsms.streamables import Coin, CoinSpend
 from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.puzzles.conlang import CREATE_COIN
 from hsms.util.byte_chunks import (

@@ -2,10 +2,12 @@ from dataclasses import dataclass
 from typing import Dict, Iterable, List, Optional, Tuple
 from weakref import WeakKeyDictionary
 
+from clvm_rs.program import Program
+
 from hsms.atoms import hexbytes
 from hsms.bls12_381 import BLSPublicKey, BLSSecretExponent
 from hsms.consensus.conditions import conditions_by_opcode
-from hsms.streamables import bytes32, CoinSpend, Program
+from hsms.streamables import bytes32, CoinSpend
 from hsms.puzzles.conlang import AGG_SIG_ME, AGG_SIG_UNSAFE
 
 from .signing_hints import SumHint, SumHints, PathHint, PathHints
@@ -24,9 +26,9 @@ CONDITIONS_FOR_COIN_SPEND: Dict[CoinSpend, Program] = WeakKeyDictionary()
 
 def conditions_for_coin_spend(coin_spend: CoinSpend) -> Program:
     if coin_spend not in CONDITIONS_FOR_COIN_SPEND:
-        CONDITIONS_FOR_COIN_SPEND[coin_spend] = coin_spend.puzzle_reveal.run(
-            coin_spend.solution
-        )
+        CONDITIONS_FOR_COIN_SPEND[coin_spend] = coin_spend.puzzle_reveal.run_with_cost(
+            coin_spend.solution, max_cost=1<<32
+        )[1]
     return CONDITIONS_FOR_COIN_SPEND[coin_spend]
 
 
@@ -123,15 +125,13 @@ def verify_pairs_for_conditions(
 
     agg_sig_me_conditions = d.get(AGG_SIG_ME, [])
     for condition in agg_sig_me_conditions:
-        condition_list = list(condition.as_atom_list())
-        yield BLSPublicKey.from_bytes(condition_list[1]), hexbytes(
-            condition_list[2] + agg_sig_me_message_suffix
+        yield BLSPublicKey.from_bytes(condition.at("rf").atom), hexbytes(
+            condition.at("rrf").atom + agg_sig_me_message_suffix
         )
 
     agg_sig_unsafe_conditions = d.get(AGG_SIG_UNSAFE, [])
     for condition in agg_sig_unsafe_conditions:
-        condition_list = list(condition.as_atom_list())
-        yield BLSPublicKey.from_bytes(condition_list[1]), hexbytes(condition[2])
+        yield BLSPublicKey.from_bytes(condition.at("rf"), hexbytes(condition.at("rrf")))
 
 
 def secret_key_for_public_key(
