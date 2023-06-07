@@ -19,7 +19,10 @@ def bytes32_fromhex(s: str) -> bytes:
 
 
 DESCRIPTION = "Proof of secret exponent request verifier."
-EPILOG = 'Note: signature output from hsms is in "qrint" form. Use `qrint -H` to convert it to hex.'
+EPILOG = (
+    'Note: signature output from hsms is in "qrint" form. '
+    'Use `qrint -H` to convert it to hex.'
+)
 
 
 def create_parser():

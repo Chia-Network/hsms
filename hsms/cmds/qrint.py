@@ -9,7 +9,6 @@ from hsms.util.qrint_encoding import a2b_qrint, b2a_qrint
 
 
 def create_spend_bundle(unsigned_spend, signatures):
-
     extra_signatures = generate_synthetic_offset_signatures(unsigned_spend)
 
     # now let's try adding them all together and creating a `SpendBundle`
@@ -82,7 +81,9 @@ def create_parser():
         action="store_true",
         help="force conversion from binary to qrint",
     )
-    parser.add_argument("-H", "--hex-output", action="store_true", help="force convert to hex")
+    parser.add_argument(
+        "-H", "--hex-output", action="store_true", help="force convert to hex"
+    )
     parser.add_argument(
         "path",
         metavar="path-to-binary-or-qrint-file",
