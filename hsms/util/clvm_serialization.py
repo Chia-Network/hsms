@@ -1,6 +1,6 @@
 from typing import Any, Callable, Dict, List, Tuple, TypeVar
 
-from clvm_rs.program import Program
+from clvm_rs import Program
 
 
 K = TypeVar("K")

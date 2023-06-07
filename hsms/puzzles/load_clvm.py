@@ -1,7 +1,7 @@
 import pathlib
 
 import pkg_resources
-from clvm_rs.program import Program
+from clvm_rs import Program
 from clvm_tools_rs import compile_clvm
 
 

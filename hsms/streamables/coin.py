@@ -1,6 +1,6 @@
 import io
 
-from clvm_rs.program import Program
+from clvm_rs import Program
 
 from hsms.atoms import uint64
 from hsms.meta import streamable

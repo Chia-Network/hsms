@@ -10,7 +10,7 @@ import subprocess
 import sys
 import zlib
 
-from clvm_rs.program import Program
+from clvm_rs import Program
 
 import segno
 

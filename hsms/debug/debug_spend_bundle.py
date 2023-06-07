@@ -1,6 +1,6 @@
 from typing import List
 
-from clvm_rs.program import Program
+from clvm_rs import Program
 
 from hsms.bls12_381 import BLSSignature
 from hsms.clvm.disasm import disassemble as bu_disassemble, KEYWORD_FROM_ATOM
@@ -82,7 +82,7 @@ def debug_spend_bundle(
             f"\nbrun -y main.sym '{bu_disassemble(puzzle_reveal)}'"
             f" '{bu_disassemble(solution)}'"
         )
-        r = puzzle_reveal.run(solution)
+        cost, r = puzzle_reveal.run_with_cost(solution, max_cost=1<<34)
         conditions = conditions_by_opcode(r)
         error = None
         if error:
@@ -95,6 +95,7 @@ def debug_spend_bundle(
                 msgs.append(m)
             print()
             print(disassemble(r))
+            print(f"cost = {cost}")
             print()
             if conditions and len(conditions) > 0:
                 print("grouped conditions:")

@@ -3,7 +3,7 @@ import zlib
 from dataclasses import dataclass
 from typing import List
 
-from clvm_rs.program import Program
+from clvm_rs import Program
 
 from hsms.bls12_381 import BLSPublicKey, BLSSignature
 from hsms.process.signing_hints import SumHint, PathHint

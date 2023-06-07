@@ -59,7 +59,7 @@ following mechanism:
 
 import hashlib
 
-from clvm_rs.program import Program
+from clvm_rs import Program
 
 from hsms.bls12_381 import BLSPublicKey, BLSSecretExponent
 from hsms.streamables import bytes32
@@ -90,7 +90,9 @@ def calculate_synthetic_offset(
 def calculate_synthetic_public_key(
     public_key: BLSPublicKey, hidden_puzzle_hash: bytes32
 ) -> BLSPublicKey:
-    r = SYNTHETIC_MOD.run([bytes(public_key), hidden_puzzle_hash])
+    _cost, r = SYNTHETIC_MOD.run_with_cost(
+        [bytes(public_key), hidden_puzzle_hash], max_cost=1 << 32
+    )
     return BLSPublicKey.from_bytes(r.atom)
 
 

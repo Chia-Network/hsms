@@ -1,6 +1,6 @@
 from typing import Dict, Iterable, List
 
-from clvm_rs.program import Program
+from clvm_rs import Program
 
 
 def iter_program(program: Program) -> Iterable[Program]:

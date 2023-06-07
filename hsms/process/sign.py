@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Dict, Iterable, List, Optional, Tuple
 from weakref import WeakKeyDictionary
 
-from clvm_rs.program import Program
+from clvm_rs import Program
 
 from hsms.atoms import hexbytes
 from hsms.bls12_381 import BLSPublicKey, BLSSecretExponent
@@ -26,9 +26,9 @@ CONDITIONS_FOR_COIN_SPEND: Dict[CoinSpend, Program] = WeakKeyDictionary()
 
 def conditions_for_coin_spend(coin_spend: CoinSpend) -> Program:
     if coin_spend not in CONDITIONS_FOR_COIN_SPEND:
-        CONDITIONS_FOR_COIN_SPEND[coin_spend] = coin_spend.puzzle_reveal.run(
-            coin_spend.solution
-        )
+        CONDITIONS_FOR_COIN_SPEND[coin_spend] = coin_spend.puzzle_reveal.run_with_cost(
+            coin_spend.solution, max_cost=1<<32
+        )[1]
     return CONDITIONS_FOR_COIN_SPEND[coin_spend]
 
 

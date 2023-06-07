@@ -10,7 +10,7 @@ require a delegated puzzle program, so in those cases, this is just what
 the doctor ordered.
 """
 
-from clvm_rs.program import Program
+from clvm_rs import Program
 
 from .load_clvm import load_clvm
 
@@ -18,7 +18,7 @@ MOD = load_clvm("p2_conditions.cl")
 
 
 def puzzle_for_conditions(conditions) -> Program:
-    return MOD.run([conditions])
+    return MOD.run_with_cost([conditions], max_cost=1<<32)[1]
 
 
 def solution_for_conditions(conditions) -> Program:

@@ -1,6 +1,6 @@
 import io
 
-from clvm_rs.program import Program
+from clvm_rs import Program
 
 
 # this differs from clvm_tools in that it adds the single quote

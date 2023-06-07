@@ -2,7 +2,7 @@ import argparse
 import hashlib
 import zlib
 
-from clvm_rs.program import Program
+from clvm_rs import Program
 
 from hsms.bls12_381 import BLSPublicKey
 
