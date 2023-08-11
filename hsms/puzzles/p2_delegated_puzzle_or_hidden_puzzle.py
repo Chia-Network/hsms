@@ -64,7 +64,8 @@ from clvm_rs import Program
 from hsms.bls12_381 import BLSPublicKey, BLSSecretExponent
 from hsms.streamables import bytes32
 
-from .load_clvm import load_clvm
+from chialisp_puzzles import load_puzzle
+
 from .p2_conditions import puzzle_for_conditions
 
 DEFAULT_HIDDEN_PUZZLE = Program.from_bytes(
@@ -73,9 +74,9 @@ DEFAULT_HIDDEN_PUZZLE = Program.from_bytes(
 
 DEFAULT_HIDDEN_PUZZLE_HASH = DEFAULT_HIDDEN_PUZZLE.tree_hash()
 
-MOD = load_clvm("p2_delegated_puzzle_or_hidden_puzzle.cl")
+MOD = load_puzzle("p2_delegated_puzzle_or_hidden_puzzle")
 
-SYNTHETIC_MOD = load_clvm("calculate_synthetic_public_key.cl")
+SYNTHETIC_MOD = load_puzzle("calculate_synthetic_public_key")
 
 
 def calculate_synthetic_offset(

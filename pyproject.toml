@@ -6,7 +6,7 @@ license = "Apache-2.0"
 repository = "https://github.com/chia-network/hsms.git"
 readme = "README.md"
 src_root = "."
-dependencies = ["blspy==1.0.16", "segno==1.4.1", "clvm_rs==0.2.5", "clvm_tools_rs==0.1.30"]
+dependencies = ["segno==1.4.1", "chia_base==0.1.2", "chialisp_puzzles==0.1.0"]
 packages = ["hsms"]
 # version is defined with `setuptools_scm`. See `SConstruct` file.
 
@@ -22,6 +22,7 @@ console_scripts = [
   "hsmmerge = hsms.cmds.hsmmerge:main",
   "hsm_test_spend = hsms.cmds.hsm_test_spend:main",
   "hsm_dump_sb = hsms.cmds.hsm_dump_sb:main",
+  "hsm_dump_us = hsms.cmds.hsm_dump_us:main",
   "qrint = hsms.cmds.qrint:main",
   "hsmwizard = hsms.cmds.hsmwizard:main",
   "poser_gen = hsms.cmds.poser_gen:main",
