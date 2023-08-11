@@ -82,9 +82,12 @@ def hsm_test_spend(args, parser):
     )
 
     b = bytes(unsigned_spend)
-    cb = zlib.compress(b)
-    optimal_size = optimal_chunk_size_for_max_chunk_size(len(cb), args.max_chunk_size)
-    chunks = create_chunks_for_blob(cb, optimal_size)
+    if args.no_chunks:
+        chunks = [b]
+    else:
+        cb = zlib.compress(b)
+        optimal_size = optimal_chunk_size_for_max_chunk_size(len(cb), args.max_chunk_size)
+        chunks = create_chunks_for_blob(cb, optimal_size)
     for chunk in chunks:
         print(b2a_qrint(chunk))
 
@@ -103,6 +106,12 @@ def create_parser():
         default=8192,
         help="maximum number of bytes encoded into each chunk",
         type=int,
+    )
+    parser.add_argument(
+        "-n",
+        "--no-chunks",
+        action='store_true',
+        help="don't compress or chunk output",
     )
     parser.add_argument(
         "public_key",
