@@ -1,7 +1,7 @@
-import zlib
-
 from dataclasses import dataclass
 from typing import List
+
+import zlib
 
 from clvm_rs import Program
 
