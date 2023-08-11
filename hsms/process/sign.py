@@ -14,6 +14,7 @@ from hsms.puzzles.conlang import AGG_SIG_ME, AGG_SIG_UNSAFE
 from .signing_hints import SumHint, SumHints, PathHint, PathHints
 from .unsigned_spend import SignatureInfo, UnsignedSpend
 
+MAX_COST = 1 << 34
 
 @dataclass
 class SignatureMetadata:
@@ -27,9 +28,10 @@ CONDITIONS_FOR_COIN_SPEND: Dict[CoinSpend, Program] = WeakKeyDictionary()
 
 def conditions_for_coin_spend(coin_spend: CoinSpend) -> Program:
     if coin_spend not in CONDITIONS_FOR_COIN_SPEND:
-        CONDITIONS_FOR_COIN_SPEND[coin_spend] = coin_spend.puzzle_reveal.run_with_cost(
-            coin_spend.solution, max_cost=1<<32
-        )[1]
+        _cost, r = coin_spend.puzzle_reveal.run_with_cost(
+            coin_spend.solution, max_cost=MAX_COST
+        )
+        CONDITIONS_FOR_COIN_SPEND[coin_spend] = r
     return CONDITIONS_FOR_COIN_SPEND[coin_spend]
 
 
