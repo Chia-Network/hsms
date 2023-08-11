@@ -12,9 +12,9 @@ the doctor ordered.
 
 from clvm_rs import Program
 
-from .load_clvm import load_clvm
+from chialisp_puzzles import load_puzzle
 
-MOD = load_clvm("p2_conditions.cl")
+MOD = load_puzzle("p2_conditions")
 
 
 def puzzle_for_conditions(conditions) -> Program:
