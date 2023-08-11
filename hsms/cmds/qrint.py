@@ -1,22 +1,8 @@
-#!/usr/bin/env python
-
 import argparse
 import os.path
 
 from hsms.process.sign import generate_synthetic_offset_signatures
-from hsms.streamables import SpendBundle
 from hsms.util.qrint_encoding import a2b_qrint, b2a_qrint
-
-
-def create_spend_bundle(unsigned_spend, signatures):
-    extra_signatures = generate_synthetic_offset_signatures(unsigned_spend)
-
-    # now let's try adding them all together and creating a `SpendBundle`
-
-    all_signatures = signatures + [sig_info.signature for sig_info in extra_signatures]
-    total_signature = sum(all_signatures, start=all_signatures[0].zero())
-
-    return SpendBundle(unsigned_spend.coin_spends, total_signature)
 
 
 def file_or_string(p) -> str:

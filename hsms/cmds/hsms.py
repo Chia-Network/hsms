@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from decimal import Decimal
 from typing import BinaryIO, Iterable, List, TextIO
 
