@@ -2,13 +2,13 @@ from typing import List
 
 from clvm_rs import Program
 
-from hsms.bls12_381 import BLSSignature
+from chia_base.core import Coin
+from chia_base.util.std_hash import std_hash
+
 from hsms.clvm.disasm import disassemble as bu_disassemble, KEYWORD_FROM_ATOM
 from hsms.consensus.conditions import conditions_by_opcode
 from hsms.process.sign import generate_verify_pairs
 from hsms.puzzles import conlang
-from hsms.streamables import Coin
-from hsms.util.std_hash import std_hash
 
 KFA = {bytes([getattr(conlang, k)]): k for k in dir(conlang) if k[0] in "ACR"}
 
@@ -219,7 +219,7 @@ def debug_spend_bundle(
     print()
     print("=" * 80)
     print()
-    signature = BLSSignature.from_bytes(spend_bundle.aggregated_signature)
+    signature = spend_bundle.aggregated_signature
     validates = signature.verify(list(zip(pks, msgs)))
     print(f"aggregated signature check pass: {validates}")
     print(f"pks: {pks}")
@@ -227,5 +227,5 @@ def debug_spend_bundle(
     print(f"  msg_data: {[msg.hex()[:-128] for msg in msgs]}")
     print(f"  coin_ids: {[msg.hex()[-128:-64] for msg in msgs]}")
     print(f"  add_data: {[msg.hex()[-64:] for msg in msgs]}")
-    print(f"signature: {spend_bundle.aggregated_signature}")
+    print(f"signature: {signature}")
     return validates

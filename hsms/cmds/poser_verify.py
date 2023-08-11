@@ -2,7 +2,7 @@ from hashlib import sha256
 
 import argparse
 
-from hsms.bls12_381 import BLSPublicKey, BLSSignature
+from chia_base.bls12_381 import BLSPublicKey, BLSSignature
 
 
 DEFAULT_PARENT_COIN_ID = sha256(b"fake_id").digest()

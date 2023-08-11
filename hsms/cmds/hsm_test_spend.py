@@ -4,7 +4,8 @@ import zlib
 
 from clvm_rs import Program
 
-from hsms.bls12_381 import BLSPublicKey
+from chia_base.bls12_381 import BLSPublicKey
+from chia_base.core import Coin
 
 from hsms.process.signing_hints import SumHint, PathHint
 
@@ -14,7 +15,7 @@ from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     solution_for_conditions,
     calculate_synthetic_offset,
 )
-from hsms.streamables import Coin, CoinSpend
+from hsms.streamables import CoinSpend
 from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.puzzles.conlang import CREATE_COIN
 from hsms.util.byte_chunks import (
@@ -33,7 +34,7 @@ DEFAULT_HIDDEN_PUZZLE_HASH = DEFAULT_HIDDEN_PUZZLE.tree_hash()
 
 def hsm_test_spend(args, parser):
     root_public_keys = [
-        BLSPublicKey.from_bech32m(_.readline()[:-1]) for _ in args.public_key_file
+        BLSPublicKey.from_bech32m(_) for _ in args.public_key
     ]
 
     paths = [[index, index + 1] for index in range(len(root_public_keys))]
@@ -104,18 +105,18 @@ def create_parser():
         type=int,
     )
     parser.add_argument(
-        "public_key_file",
-        metavar="path-to-public-key",
+        "public_key",
+        metavar="public-key",
         nargs="+",
-        help="file containing a single bech32m-encoded public key",
-        type=argparse.FileType("r"),
+        help="bech32m-encoded public key",
+        type=str,
     )
     return parser
 
 
-def main():
+def main(argv=None):
     parser = create_parser()
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     return hsm_test_spend(args, parser)
 
 

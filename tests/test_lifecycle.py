@@ -1,5 +1,7 @@
 from tests.generate import se_generate, bytes32_generate, uint256_generate
 
+from chia_base.core import Coin, SpendBundle
+
 from hsms.debug.debug_spend_bundle import debug_spend_bundle
 from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     DEFAULT_HIDDEN_PUZZLE,
@@ -7,7 +9,7 @@ from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     solution_for_conditions,
     calculate_synthetic_offset,
 )
-from hsms.streamables import bytes96, Coin, CoinSpend, SpendBundle
+from hsms.streamables import CoinSpend
 from hsms.process.sign import sign, generate_synthetic_offset_signatures
 from hsms.process.signing_hints import SumHint, PathHint
 from hsms.process.unsigned_spend import UnsignedSpend
@@ -158,4 +160,4 @@ def create_spend_bundle(unsigned_spend, signatures):
     all_signatures = [sig_info.signature for sig_info in signatures + extra_signatures]
     total_signature = sum(all_signatures, start=all_signatures[0].zero())
 
-    return SpendBundle(unsigned_spend.coin_spends, bytes96(total_signature))
+    return SpendBundle(unsigned_spend.coin_spends, total_signature)

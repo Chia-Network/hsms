@@ -3,8 +3,9 @@ from hashlib import sha256
 import argparse
 
 
-from hsms.bls12_381 import BLSPublicKey
-from hsms.streamables.coin import Coin
+from chia_base.bls12_381 import BLSPublicKey
+from chia_base.core.coin import Coin
+
 from hsms.streamables.coin_spend import CoinSpend
 from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
