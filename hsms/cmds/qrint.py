@@ -1,7 +1,6 @@
 import argparse
 import os.path
 
-from hsms.process.sign import generate_synthetic_offset_signatures
 from hsms.util.qrint_encoding import a2b_qrint, b2a_qrint
 
 
