@@ -1,6 +1,6 @@
 import secrets
 
-from hsms.bls12_381 import BLSSecretExponent
+from chia_base.bls12_381 import BLSSecretExponent
 
 
 def main():

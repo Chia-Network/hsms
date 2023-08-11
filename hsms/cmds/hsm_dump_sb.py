@@ -3,7 +3,8 @@
 
 import argparse
 
-from hsms.streamables import SpendBundle
+from chia_base.core import SpendBundle
+
 from hsms.debug.debug_spend_bundle import debug_spend_bundle
 
 

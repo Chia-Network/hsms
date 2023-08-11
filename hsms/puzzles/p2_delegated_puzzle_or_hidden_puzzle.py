@@ -61,8 +61,8 @@ import hashlib
 
 from clvm_rs import Program
 
-from hsms.bls12_381 import BLSPublicKey, BLSSecretExponent
-from hsms.streamables import bytes32
+from chia_base.atoms import bytes32
+from chia_base.bls12_381 import BLSPublicKey, BLSSecretExponent
 
 from chialisp_puzzles import load_puzzle
 
