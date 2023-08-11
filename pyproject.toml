@@ -1,4 +1,4 @@
-[tool.enscons]
+[project]
 name = "hsms"
 description = "Hardware security module simulator for chia bls12_381 signatures"
 authors = ["Richard Kiss <him@richardkiss.com>"]
@@ -10,11 +10,11 @@ dependencies = ["blspy==1.0.16", "segno==1.4.1", "clvm_rs==0.2.5", "clvm_tools_r
 packages = ["hsms"]
 # version is defined with `setuptools_scm`. See `SConstruct` file.
 
-[tool.enscons.optional_dependencies]
+[project.optional_dependencies]
 test = ["nose", "coverage"]
 dev = ["flake8>=4.0.1", "black>=22.6"]
 
-[tool.enscons.entry_points]
+[project.entry_points]
 console_scripts = [
   "hsms = hsms.cmds.hsms:main",
   "hsmpk = hsms.cmds.hsmpk:main",
