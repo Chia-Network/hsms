@@ -16,6 +16,7 @@ from .unsigned_spend import SignatureInfo, UnsignedSpend
 
 MAX_COST = 1 << 34
 
+
 @dataclass
 class SignatureMetadata:
     partial_public_key: BLSPublicKey

@@ -33,9 +33,7 @@ DEFAULT_HIDDEN_PUZZLE_HASH = DEFAULT_HIDDEN_PUZZLE.tree_hash()
 
 
 def hsm_test_spend(args, parser):
-    root_public_keys = [
-        BLSPublicKey.from_bech32m(_) for _ in args.public_key
-    ]
+    root_public_keys = [BLSPublicKey.from_bech32m(_) for _ in args.public_key]
 
     paths = [[index, index + 1] for index in range(len(root_public_keys))]
 
@@ -86,7 +84,9 @@ def hsm_test_spend(args, parser):
         chunks = [b]
     else:
         cb = zlib.compress(b)
-        optimal_size = optimal_chunk_size_for_max_chunk_size(len(cb), args.max_chunk_size)
+        optimal_size = optimal_chunk_size_for_max_chunk_size(
+            len(cb), args.max_chunk_size
+        )
         chunks = create_chunks_for_blob(cb, optimal_size)
     for chunk in chunks:
         print(b2a_qrint(chunk))
@@ -110,7 +110,7 @@ def create_parser():
     parser.add_argument(
         "-n",
         "--no-chunks",
-        action='store_true',
+        action="store_true",
         help="don't compress or chunk output",
     )
     parser.add_argument(

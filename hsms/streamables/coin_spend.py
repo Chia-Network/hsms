@@ -11,6 +11,7 @@ def as_program(self):
         for _ in self.coin_spends
     ]
 
+
 @classmethod
 def from_program(cls, program) -> "CoinSpend":
     parent_coin_info, puzzle_reveal, amount, solution = transform_as_struct(
@@ -31,6 +32,7 @@ def from_program(cls, program) -> "CoinSpend":
         puzzle_reveal,
         solution,
     )
+
 
 CoinSpend.as_program = as_program
 CoinSpend.from_program = from_program
