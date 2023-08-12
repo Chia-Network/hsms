@@ -1,34 +1,30 @@
+[build-system]
+requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=6.2", "chialisp_builder==0.1.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "hsms"
 description = "Hardware security module simulator for chia bls12_381 signatures"
-authors = ["Richard Kiss <him@richardkiss.com>"]
-license = "Apache-2.0"
-repository = "https://github.com/chia-network/hsms.git"
+authors = [{name = "Richard Kiss", email = "him@richardkiss.com"}]
+license = {file = "LICENSE"}
 readme = "README.md"
-src_root = "."
 dependencies = ["segno==1.4.1", "chia_base==0.1.3", "chialisp_puzzles==0.1.0"]
-packages = ["hsms"]
-# version is defined with `setuptools_scm`. See `SConstruct` file.
+# version is defined with `setuptools_scm`
+dynamic = ["version"]
 
-[project.optional_dependencies]
-test = ["nose", "coverage"]
-dev = ["flake8>=4.0.1", "black>=22.6"]
+[project.optional-dependencies]
+dev = ["flake8>=4.0.1", "black>=22.6", "pytest"]
 
-[project.entry_points]
-console_scripts = [
-  "hsms = hsms.cmds.hsms:main",
-  "hsmpk = hsms.cmds.hsmpk:main",
-  "hsmgen = hsms.cmds.hsmgen:main",
-  "hsmmerge = hsms.cmds.hsmmerge:main",
-  "hsm_test_spend = hsms.cmds.hsm_test_spend:main",
-  "hsm_dump_sb = hsms.cmds.hsm_dump_sb:main",
-  "hsm_dump_us = hsms.cmds.hsm_dump_us:main",
-  "qrint = hsms.cmds.qrint:main",
-  "hsmwizard = hsms.cmds.hsmwizard:main",
-  "poser_gen = hsms.cmds.poser_gen:main",
-  "poser_verify = hsms.cmds.poser_verify:main"
-]
+[project.scripts]
+hsms = "hsms.cmds.hsms:main"
+hsmpk = "hsms.cmds.hsmpk:main"
+hsmgen = "hsms.cmds.hsmgen:main"
+hsmmerge = "hsms.cmds.hsmmerge:main"
+hsm_test_spend = "hsms.cmds.hsm_test_spend:main"
+hsm_dump_sb = "hsms.cmds.hsm_dump_sb:main"
+qrint = "hsms.cmds.qrint:main"
+hsmwizard = "hsms.cmds.hsmwizard:main"
 
-[build-system]
-requires = ["pytoml>=0.1", "enscons", "setuptools_scm>=6.2"]
-build-backend = "enscons.api"
+# version is defined with `setuptools_scm`
+[tool.setuptools_scm]
+local_scheme = "no-local-version"
