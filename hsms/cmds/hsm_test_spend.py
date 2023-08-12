@@ -5,7 +5,7 @@ import zlib
 from clvm_rs import Program
 
 from chia_base.bls12_381 import BLSPublicKey
-from chia_base.core import Coin
+from chia_base.core import Coin, CoinSpend
 
 from hsms.process.signing_hints import SumHint, PathHint
 
@@ -15,7 +15,6 @@ from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     solution_for_conditions,
     calculate_synthetic_offset,
 )
-from hsms.streamables import CoinSpend
 from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.puzzles.conlang import CREATE_COIN
 from hsms.util.byte_chunks import (

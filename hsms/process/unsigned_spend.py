@@ -7,14 +7,18 @@ from clvm_rs import Program
 
 from chia_base.atoms import bytes32
 from chia_base.bls12_381 import BLSPublicKey, BLSSignature
+from chia_base.core import Coin, CoinSpend
 
 from hsms.process.signing_hints import SumHint, PathHint
-from hsms.streamables import CoinSpend
 from hsms.util.byte_chunks import assemble_chunks, create_chunks_for_blob
 from hsms.util.clvm_serialization import (
+    as_atom,
+    as_int,
+    clvm_to_list,
+    no_op,
     transform_dict,
     transform_dict_by_key,
-    clvm_to_list,
+    transform_as_struct,
 )
 
 
@@ -68,8 +72,22 @@ class UnsignedSpend:
         return UnsignedSpend.from_bytes(zlib.decompress(assemble_chunks(chunks)))
 
 
+def coin_spend_from_program(program: Program) -> CoinSpend:
+    struct = transform_as_struct(program, as_atom, no_op, as_int, no_op)
+    parent_coin_info, puzzle_reveal, amount, solution = struct
+    return CoinSpend(
+        Coin(
+            parent_coin_info,
+            puzzle_reveal.tree_hash(),
+            amount,
+        ),
+        puzzle_reveal,
+        solution,
+    )
+
+
 UNSIGNED_SPEND_TRANSFORMER = {
-    "c": lambda x: clvm_to_list(x, CoinSpend.from_program),
+    "c": lambda x: clvm_to_list(x, coin_spend_from_program),
     "s": lambda x: clvm_to_list(x, SumHint.from_program),
     "p": lambda x: clvm_to_list(x, PathHint.from_program),
     "a": lambda x: x.atom,
