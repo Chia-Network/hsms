@@ -28,10 +28,3 @@ For testing & debugging:
 
 - `hsm_test_spend` - create a simple test `UnsignedSpend` multisig spend
 - `hsm_dump_sb` - debug utility to dump information about a `SpendBundle`
-
-
-enscons
--------
-
-This package uses [enscons](https://github.com/dholth/enscons)
-which uses [SCons](https://scons.org/) to build rather than the commonly used `setuptools`.
