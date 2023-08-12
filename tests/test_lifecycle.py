@@ -1,6 +1,6 @@
 from tests.generate import se_generate, bytes32_generate, uint256_generate
 
-from chia_base.core import Coin, SpendBundle
+from chia_base.core import Coin, CoinSpend, SpendBundle
 
 from hsms.debug.debug_spend_bundle import debug_spend_bundle
 from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
@@ -9,7 +9,6 @@ from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     solution_for_conditions,
     calculate_synthetic_offset,
 )
-from hsms.streamables import CoinSpend
 from hsms.process.sign import sign, generate_synthetic_offset_signatures
 from hsms.process.signing_hints import SumHint, PathHint
 from hsms.process.unsigned_spend import UnsignedSpend

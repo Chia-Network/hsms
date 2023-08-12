@@ -77,3 +77,15 @@ def clvm_list_to_dict(
 ) -> Dict[K, V]:
     r = clvm_to_list(items, lambda obj: from_clvm_f_to_kv(obj.pair[0], obj.pair[1]))
     return dict(r)
+
+
+def no_op(x):
+    return x
+
+
+def as_atom(x):
+    return x.atom
+
+
+def as_int(x):
+    return x.as_int()
