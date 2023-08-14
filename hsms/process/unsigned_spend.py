@@ -3,11 +3,11 @@ from typing import List
 
 import zlib
 
-from clvm_rs import Program
-
 from chia_base.atoms import bytes32
 from chia_base.bls12_381 import BLSPublicKey, BLSSignature
 from chia_base.core import Coin, CoinSpend
+
+from clvm_rs import Program
 
 from hsms.process.signing_hints import SumHint, PathHint
 from hsms.util.byte_chunks import assemble_chunks, create_chunks_for_blob

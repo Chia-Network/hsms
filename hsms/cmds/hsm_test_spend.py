@@ -8,14 +8,13 @@ from chia_base.bls12_381 import BLSPublicKey
 from chia_base.core import Coin, CoinSpend
 
 from hsms.process.signing_hints import SumHint, PathHint
-
+from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     DEFAULT_HIDDEN_PUZZLE,
     puzzle_for_public_key_and_hidden_puzzle,
     solution_for_conditions,
     calculate_synthetic_offset,
 )
-from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.puzzles.conlang import CREATE_COIN
 from hsms.util.byte_chunks import (
     create_chunks_for_blob,
