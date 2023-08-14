@@ -8,13 +8,13 @@ import subprocess
 import sys
 import zlib
 
-from clvm_rs import Program
-
-import segno
-
 from chia_base.atoms import bytes32
 from chia_base.bls12_381 import BLSSecretExponent, BLSSignature
 from chia_base.util.bech32 import bech32_encode
+
+from clvm_rs import Program
+
+import segno
 
 from hsms.consensus.conditions import conditions_by_opcode
 from hsms.process.sign import conditions_for_coin_spend, sign

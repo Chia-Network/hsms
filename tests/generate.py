@@ -1,8 +1,8 @@
 import hashlib
 import hmac
 
-from chia_base.bls12_381 import BLSPublicKey, BLSSecretExponent
 from chia_base.atoms import bytes32
+from chia_base.bls12_381 import BLSPublicKey, BLSSecretExponent
 
 
 def bytes32_generate(nonce: int, namespace: str = "bytes32") -> bytes32:

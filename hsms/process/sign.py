@@ -2,11 +2,11 @@ from dataclasses import dataclass
 from typing import Dict, Iterable, List, Optional, Tuple
 from weakref import WeakKeyDictionary
 
-from clvm_rs import Program
-
 from chia_base.atoms import bytes32, hexbytes
 from chia_base.bls12_381 import BLSPublicKey, BLSSecretExponent
 from chia_base.core import CoinSpend
+
+from clvm_rs import Program
 
 from hsms.consensus.conditions import conditions_by_opcode
 from hsms.puzzles.conlang import AGG_SIG_ME, AGG_SIG_UNSAFE
