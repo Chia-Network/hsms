@@ -37,12 +37,14 @@ def unsigned_spend_from_blob(blob: bytes) -> UnsignedSpend:
         return UnsignedSpend.from_program(program)
 
 
-def create_unsigned_spend_pipeline(nochunks: bool) -> Iterable[UnsignedSpend]:
-    print("waiting for qrint-encoded signing requests", file=sys.stderr)
+def create_unsigned_spend_pipeline(
+    nochunks: bool, f=sys.stdout
+) -> Iterable[UnsignedSpend]:
+    print("waiting for qrint-encoded signing requests", file=f)
     partial_encodings = {}
     while True:
         try:
-            print("> ", end="", file=sys.stderr)
+            print("> ", end="", file=f)
             line = input("").strip()
             if len(line) == 0:
                 break
@@ -64,7 +66,7 @@ def create_unsigned_spend_pipeline(nochunks: bool) -> Iterable[UnsignedSpend]:
         except EOFError:
             break
         except Exception as ex:
-            print(ex, file=sys.stderr)
+            print(ex, file=f)
 
 
 def replace_with_gpg_pipe(args, f: BinaryIO) -> TextIO:
@@ -92,17 +94,15 @@ def parse_private_key_file(args) -> List[BLSSecretExponent]:
     return secret_exponents
 
 
-def summarize_unsigned_spend(unsigned_spend: UnsignedSpend):
-    print(file=sys.stderr)
+def summarize_unsigned_spend(unsigned_spend: UnsignedSpend, f=sys.stdout):
+    print(file=f)
     for coin_spend in unsigned_spend.coin_spends:
         xch_amount = Decimal(coin_spend.coin.amount) / XCH_PER_MOJO
         address = address_for_puzzle_hash(coin_spend.coin.puzzle_hash)
-        print(
-            f"COIN SPENT: {xch_amount:0.12f} xch at address {address}", file=sys.stderr
-        )
+        print(f"COIN SPENT: {xch_amount:0.12f} xch at address {address}", file=f)
         conditions = conditions_for_coin_spend(coin_spend)
 
-    print(file=sys.stderr)
+    print(file=f)
     for coin_spend in unsigned_spend.coin_spends:
         conditions = conditions_for_coin_spend(coin_spend)
         conditions_lookup = conditions_by_opcode(conditions)
@@ -111,8 +111,8 @@ def summarize_unsigned_spend(unsigned_spend: UnsignedSpend):
             address = address_for_puzzle_hash(puzzle_hash)
             amount = int(create_coin.at("rrf"))
             xch_amount = Decimal(amount) / XCH_PER_MOJO
-            print(f"COIN CREATED: {xch_amount:0.12f} xch to {address}", file=sys.stderr)
-    print(file=sys.stderr)
+            print(f"COIN CREATED: {xch_amount:0.12f} xch to {address}", file=f)
+    print(file=f)
 
 
 def address_for_puzzle_hash(puzzle_hash: bytes32) -> str:
@@ -126,10 +126,11 @@ def check_ok():
 
 def hsms(args, parser):
     wallet = parse_private_key_file(args)
-    unsigned_spend_pipeline = create_unsigned_spend_pipeline(args.nochunks)
+    f = sys.stderr
+    unsigned_spend_pipeline = create_unsigned_spend_pipeline(args.nochunks, f)
     for unsigned_spend in unsigned_spend_pipeline:
         if not args.yes:
-            summarize_unsigned_spend(unsigned_spend)
+            summarize_unsigned_spend(unsigned_spend, f)
             if not check_ok():
                 continue
         signature_info = sign(unsigned_spend, wallet)
