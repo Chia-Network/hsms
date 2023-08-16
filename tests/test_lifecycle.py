@@ -1,3 +1,5 @@
+import zlib
+
 from tests.generate import se_generate, bytes32_generate, uint256_generate
 
 from chia_base.core import Coin, CoinSpend, SpendBundle
@@ -115,7 +117,9 @@ def test_lifecycle():
         coin_spends, sum_hints, path_hints, AGG_SIG_ME_ADDITIONAL_DATA
     )
 
-    assert unsigned_spend == UnsignedSpend.from_chunks(unsigned_spend.chunk(500))
+    assert unsigned_spend == UnsignedSpend.from_bytes(
+        zlib.decompress(ChunkAssembler(unsigned_spend.chunk(500)).assemble())
+    )
 
     spend_chunks = create_chunks_for_blob(bytes(unsigned_spend), 250)
     assembler = ChunkAssembler()
