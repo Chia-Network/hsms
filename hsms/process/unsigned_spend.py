@@ -67,10 +67,6 @@ class UnsignedSpend:
         bundle_bytes = zlib.compress(bytes(self), level=9)
         return create_chunks_for_blob(bundle_bytes, bytes_per_chunk)
 
-    @classmethod
-    def from_chunks(cls, chunks: List[bytes]) -> "UnsignedSpend":
-        return UnsignedSpend.from_bytes(zlib.decompress(assemble_chunks(chunks)))
-
 
 def coin_spend_from_program(program: Program) -> CoinSpend:
     struct = transform_as_struct(program, as_atom, no_op, as_int, no_op)
