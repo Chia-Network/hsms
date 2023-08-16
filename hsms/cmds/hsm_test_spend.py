@@ -1,5 +1,6 @@
 import argparse
 import hashlib
+import sys
 import zlib
 
 from clvm_rs import Program
@@ -78,16 +79,19 @@ def hsm_test_spend(args, parser):
     )
 
     b = bytes(unsigned_spend)
-    if args.no_chunks:
-        chunks = [b]
+    if args.hex:
+        print(b.hex())
     else:
-        cb = zlib.compress(b)
-        optimal_size = optimal_chunk_size_for_max_chunk_size(
-            len(cb), args.max_chunk_size
-        )
-        chunks = create_chunks_for_blob(cb, optimal_size)
-    for chunk in chunks:
-        print(b2a_qrint(chunk))
+        if args.no_chunks:
+            chunks = [b]
+        else:
+            cb = zlib.compress(b)
+            optimal_size = optimal_chunk_size_for_max_chunk_size(
+                len(cb), args.max_chunk_size
+            )
+            chunks = create_chunks_for_blob(cb, optimal_size)
+        for chunk in chunks:
+            print(b2a_qrint(chunk))
 
     us = UnsignedSpend.from_bytes(b)
     assert bytes(us) == b
@@ -106,6 +110,12 @@ def create_parser():
         type=int,
     )
     parser.add_argument(
+        "-H",
+        "--hex",
+        action="store_true",
+        help="hex output",
+    )
+    parser.add_argument(
         "-n",
         "--no-chunks",
         action="store_true",
@@ -121,7 +131,7 @@ def create_parser():
     return parser
 
 
-def main(argv=None):
+def main(argv=sys.argv[1:]):
     parser = create_parser()
     args = parser.parse_args(argv)
     return hsm_test_spend(args, parser)

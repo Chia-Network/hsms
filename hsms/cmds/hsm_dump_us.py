@@ -1,4 +1,5 @@
 import argparse
+import sys
 
 from hsms.clvm.disasm import disassemble
 from hsms.cmds.hsms import summarize_unsigned_spend
@@ -53,9 +54,9 @@ def create_parser():
     return parser
 
 
-def main(argv=None):
-    parser = create_parser(argv)
-    args = parser.parse_args()
+def main(argv=sys.argv[1:]):
+    parser = create_parser()
+    args = parser.parse_args(argv)
     return hsms_dump_us(args, parser)
 
 

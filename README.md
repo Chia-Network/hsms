@@ -28,3 +28,4 @@ For testing & debugging:
 
 - `hsm_test_spend` - create a simple test `UnsignedSpend` multisig spend
 - `hsm_dump_sb` - debug utility to dump information about a `SpendBundle`
+- `hsm_dump_us` - debug utility to dump information about an `UnsignedSpend`
