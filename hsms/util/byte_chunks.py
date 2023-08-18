@@ -1,4 +1,5 @@
 import math
+import zlib
 
 from typing import List, Tuple
 
@@ -28,6 +29,10 @@ def create_chunks_for_blob(blob: bytes, bytes_per_chunk: int) -> List[bytes]:
     ]
 
     return bundle_chunks
+
+
+def chunks_for_zlib_blob(blob: bytes, bytes_per_chunk: int) -> List[bytes]:
+    return create_chunks_for_blob(zlib.compress(blob, level=9), bytes_per_chunk)
 
 
 class ChunkAssembler:
@@ -60,11 +65,22 @@ class ChunkAssembler:
         else:
             return len(self.chunks), self.chunks[0][-1] + 1
 
-    def assemble(self) -> bytes:
+    def __bytes__(self) -> bytes:
         sorted_chunks = sorted(self.chunks, key=lambda c: c[-2])
         bare_chunks = [c[:-2] for c in sorted_chunks]
         return b"".join(bare_chunks)
 
+    def assemble(self) -> bytes:
+        return bytes(self)
 
-def assemble_chunks(chunks: List[bytes]) -> bytes:
+
+
+def blob_for_chunks(chunks: List[bytes]) -> bytes:
     return ChunkAssembler(chunks).assemble()
+
+
+def blob_for_zlib_chunks(chunks: List[bytes]) -> bytes:
+    return zlib.decompress(blob_for_chunks(chunks))
+
+
+assemble_chunks = blob_for_chunks

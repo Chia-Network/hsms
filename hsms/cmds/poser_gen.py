@@ -12,6 +12,7 @@ from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     puzzle_for_synthetic_public_key,
     solution_for_conditions,
 )
+from hsms.util.byte_chunks import chunks_for_zlib_blob
 from hsms.util.qrint_encoding import b2a_qrint
 
 
@@ -82,7 +83,8 @@ def main():
 
     print(f"challenge coin id: {coin.name().hex()}\n")
 
-    chunks = [b2a_qrint(_) for _ in unsigned_spend.chunk(args.chunk_size)]
+    blob = bytes(unsigned_spend)
+    chunks = [b2a_qrint(_) for _ in chunks_for_zlib_blob(blob, args.chunk_size)]
     if verbose:
         print(f"chunk count: {len(chunks)}\n")
 
