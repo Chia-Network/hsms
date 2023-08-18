@@ -1,9 +1,11 @@
 import argparse
 import sys
+import zlib
 
 from hsms.clvm.disasm import disassemble
 from hsms.cmds.hsms import summarize_unsigned_spend
 from hsms.process.unsigned_spend import UnsignedSpend
+from hsms.util.qrint_encoding import a2b_qrint
 
 
 def file_or_string(p) -> str:
@@ -36,8 +38,23 @@ def dump_unsigned_spend(unsigned_spend):
         dump_coin_spend(coin_spend)
 
 
+def fromhex_or_qrint(s: str) -> bytes:
+    try:
+        return a2b_qrint(s)
+    except ValueError:
+        pass
+    return bytes.fromhex(s)
+
+
 def hsms_dump_us(args, parser):
-    blob = bytes.fromhex(file_or_string(args.unsigned_spend))
+    """
+    Try to handle input in qrint or hex, with or without zlib compression
+    """
+    blob = fromhex_or_qrint(file_or_string(args.unsigned_spend))
+    try:
+        blob = zlib.decompress(blob)
+    except zlib.error:
+        pass
     unsigned_spend = UnsignedSpend.from_bytes(blob)
     summarize_unsigned_spend(unsigned_spend)
 

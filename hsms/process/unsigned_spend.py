@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from typing import List
 
-import zlib
-
 from chia_base.atoms import bytes32
 from chia_base.bls12_381 import BLSPublicKey, BLSSignature
 from chia_base.core import Coin, CoinSpend
@@ -10,7 +8,6 @@ from chia_base.core import Coin, CoinSpend
 from clvm_rs import Program
 
 from hsms.process.signing_hints import SumHint, PathHint
-from hsms.util.byte_chunks import assemble_chunks, create_chunks_for_blob
 from hsms.util.clvm_serialization import (
     as_atom,
     as_int,
@@ -62,10 +59,6 @@ class UnsignedSpend:
     @classmethod
     def from_bytes(cls, blob) -> "UnsignedSpend":
         return cls.from_program(Program.from_bytes(blob))
-
-    def chunk(self, bytes_per_chunk: int) -> List[bytes]:
-        bundle_bytes = zlib.compress(bytes(self), level=9)
-        return create_chunks_for_blob(bundle_bytes, bytes_per_chunk)
 
 
 def coin_spend_from_program(program: Program) -> CoinSpend:
