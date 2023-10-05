@@ -1,12 +1,16 @@
-from dataclasses import is_dataclass
-from types import UnionType
-from typing import Any, BinaryIO, Callable, Union, TypeVar, get_type_hints
+from dataclasses import is_dataclass, fields
+from typing import Any, BinaryIO, Callable, get_type_hints
 
-from chia_base.atoms import uint8, uint32
+from chia_base.atoms import bytes32, uint8
 
 from clvm_rs import Program
 
 from .type_tree import type_tree
+
+
+class PairTuple(tuple):
+    def __new__(cls, a, b):
+        return super().__new__(cls, (a, b))
 
 
 # some helper methods to implement chia serialization
@@ -38,7 +42,25 @@ def serialize_for_tuple(origin, args, *etc):
     write_items = [type_tree(_, *etc) for _ in args]
 
     def serialize_tuple(items):
-        return Program.to([write_f(item) for write_f, item in zip(write_items, items)])
+        return Program.to(
+            [
+                write_f(item)
+                for write_f, item in zip(
+                    write_items,
+                    items,
+                )
+            ]
+        )
+
+    return serialize_tuple
+
+
+def serialize_for_pair_tuple(origin, args, *etc):
+    write_items = [type_tree(_, *etc) for _ in args]
+
+    def serialize_tuple(items):
+        as_tuple = tuple(wi(_) for wi, _ in zip(write_items, items))
+        return Program.to(as_tuple)
 
     return serialize_tuple
 
@@ -60,6 +82,7 @@ def ser_for_union(origin, args, *etc):
 SERIALIZER_COMPOUND_TYPE_LOOKUP = {
     list: serialize_for_list,
     tuple: serialize_for_tuple,
+    PairTuple: serialize_for_pair_tuple,
     # Union: to_program_for_union,
     # UnionType: to_program_for_union,
 }
@@ -74,52 +97,103 @@ def make_ser_for_dcf(f_name: str, f_type: type, *args):
     return f
 
 
+def ser_dataclass(t: type, *etc):
+    # handle regular dataclass
+    streaming_calls = []
+    for field in fields(t):
+        streaming_calls.append(make_ser_for_dcf(field.name, field.type, *etc))
+
+    def serialize_dataclass(item):
+        return Program.to([sc(item) for sc in streaming_calls])
+
+    return serialize_dataclass
+
+
+def ser_dataclass_with_keys(t: type, *etc):
+    # handle key-based data class
+    field_ser_key_tuples = [
+        (
+            f,
+            type_tree(f.type, *etc),
+            f.metadata.get("key", f.name),
+        )
+        for f in fields(t)
+    ]
+
+    def s_dataclass_with_keys(obj: t) -> Program:
+        pairs = []
+        for field, ser, key in field_ser_key_tuples:
+            v = getattr(obj, field.name)
+            if v == field.default:
+                continue
+            pt = PairTuple(key, ser(v))
+            pairs.append(pt)
+        return Program.to(pairs)
+
+    return s_dataclass_with_keys
+
+
 def fail_ser(t, *args):
     if t in [str, bytes, int]:
         return Program.to
 
+    if hasattr(t, "__bytes__"):
+        return lambda x: Program.to(bytes(x))
+
     if is_dataclass(t):
-        # TODO: handle key-based data class
-        # handle regular dataclass
-        fields = get_type_hints(t)
-
         if hasattr(t, "_use_keys"):
-            pass
-
-        streaming_calls = []
-        for f_name, f_type in fields.items():
-            if f_name.startswith("_"):
-                continue
-            streaming_calls.append(make_ser_for_dcf(f_name, f_type, *args))
-
-        def serialize_dataclass(item):
-            return Program.to([sc(item) for sc in streaming_calls])
-
-        return serialize_dataclass
+            return ser_dataclass_with_keys(t, *args)
+        else:
+            return ser_dataclass(t, *args)
 
     raise TypeError(f"can't process {t}")
 
 
+def deser_dataclass_with_keys(t: type, *args):
+    # handle key-based data class
+
+    field_des_key_tuples = [
+        (
+            f,
+            type_tree(f.type, *args),
+            f.metadata.get("key", f.name),
+        )
+        for f in fields(t)
+    ]
+
+    def des_dataclass_with_keys(p: Program):
+        d = dict((k.atom.decode(), v) for k, v in (_.pair for _ in p.as_iter()))
+        kwargs = {}
+        for field, des, key in field_des_key_tuples:
+            if key in d:
+                kwargs[field.name] = des(d[key])
+        return t(**kwargs)
+
+    return des_dataclass_with_keys
+
+
+def deser_dataclass(t: type, *args):
+    # handle regular dataclass
+
+    tuple_type = tuple[*list(field.type for field in fields(t))]
+    des_f = type_tree(tuple_type, *args)
+
+    def des_dataclass(p: Program):
+        values = des_f(p)
+        return t(*values)
+
+    return des_dataclass
+
+
 def fail_deser(t, *args):
     if is_dataclass(t):
-        # TODO: handle key-based data class
-        # handle regular dataclass
-        fields = get_type_hints(t)
+        if hasattr(t, "_use_keys"):
+            return deser_dataclass_with_keys(t, *args)
+        else:
+            return deser_dataclass(t, *args)
 
-        tuple_type = tuple[
-            *list(
-                f_type
-                for f_name, f_type in fields.items()
-                if not f_name.startswith("_")
-            )
-        ]
-        des_f = type_tree(tuple_type, *args)
-
-        def des_dataclass(p: Program):
-            values = des_f(p)
-            return t(*values)
-
-        return des_dataclass
+    if hasattr(t, "from_bytes"):
+        return lambda p: t.from_bytes(p.atom)
 
     raise TypeError(f"can't process {t}")
 
@@ -127,7 +201,7 @@ def fail_deser(t, *args):
 def to_program_for_type(t: type) -> Callable[[dict[str, Any]], Program]:
     return type_tree(
         t,
-        {},
+        {Program: lambda x: x},
         SERIALIZER_COMPOUND_TYPE_LOOKUP,
         fail_ser,
     )
@@ -154,6 +228,15 @@ def deser_for_tuple(origin, args, *etc):
     return deserialize_tuple
 
 
+def deser_for_pair_tuple(origin, args, *etc):
+    read_items = [type_tree(_, *etc) for _ in args]
+
+    def deserialize_tuple(p: Program) -> tuple[int, Any]:
+        return PairTuple(*[f(_) for f, _ in zip(read_items, p.pair)])
+
+    return deserialize_tuple
+
+
 def deser_for_union(origin, args, *etc):
     item_type = optional_from_union(args)
     if item_type is not None:
@@ -172,6 +255,7 @@ def deser_for_union(origin, args, *etc):
 DESERIALIZER_COMPOUND_TYPE_LOOKUP = {
     list: deser_for_list,
     tuple: deser_for_tuple,
+    PairTuple: deser_for_pair_tuple,
     # Union: deser_for_union,
     # UnionType: deser_for_union,
 }
@@ -187,7 +271,13 @@ def optional_from_union(args: type) -> Callable[[dict[str, Any]], bytes] | None:
 def from_program_for_type(t: type) -> Callable[[memoryview, int], tuple[int, Any]]:
     return type_tree(
         t,
-        {bytes: read_bytes, str: read_str, int: read_int},
+        {
+            bytes: read_bytes,
+            bytes32: read_bytes,
+            str: read_str,
+            int: read_int,
+            Program: lambda x: x,
+        },
         DESERIALIZER_COMPOUND_TYPE_LOOKUP,
         fail_deser,
     )
