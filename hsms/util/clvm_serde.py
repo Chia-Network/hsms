@@ -1,4 +1,4 @@
-from dataclasses import is_dataclass, fields
+from dataclasses import is_dataclass, fields, MISSING
 from typing import Any, BinaryIO, Callable, get_type_hints
 
 from chia_base.atoms import bytes32, uint8
@@ -109,22 +109,32 @@ def ser_dataclass(t: type, *etc):
     return serialize_dataclass
 
 
-def ser_dataclass_with_keys(t: type, *etc):
-    # handle key-based data class
-    field_ser_key_tuples = [
-        (
-            f,
+def field_tuples_for_type(t: type, *etc):
+    field_tuples = []
+    for f in fields(t):
+        default_value = (
+            f.default if f.default_factory is MISSING else f.default_factory()
+        )
+        t = (
+            default_value,
+            f.name,
             type_tree(f.type, *etc),
             f.metadata.get("key", f.name),
         )
-        for f in fields(t)
-    ]
+        field_tuples.append(t)
+    return field_tuples
+
+
+def ser_dataclass_with_keys(t: type, *etc):
+    # handle key-based data class
+
+    field_tuples = field_tuples_for_type(t, *etc)
 
     def s_dataclass_with_keys(obj: t) -> Program:
         pairs = []
-        for field, ser, key in field_ser_key_tuples:
-            v = getattr(obj, field.name)
-            if v == field.default:
+        for default_value, name, ser, key in field_tuples:
+            v = getattr(obj, name)
+            if v == default_value:
                 continue
             pt = PairTuple(key, ser(v))
             pairs.append(pt)
@@ -152,21 +162,14 @@ def fail_ser(t, *args):
 def deser_dataclass_with_keys(t: type, *args):
     # handle key-based data class
 
-    field_des_key_tuples = [
-        (
-            f,
-            type_tree(f.type, *args),
-            f.metadata.get("key", f.name),
-        )
-        for f in fields(t)
-    ]
+    field_tuples = field_tuples_for_type(t, *args)
 
     def des_dataclass_with_keys(p: Program):
         d = dict((k.atom.decode(), v) for k, v in (_.pair for _ in p.as_iter()))
         kwargs = {}
-        for field, des, key in field_des_key_tuples:
+        for default_value, name, des, key in field_tuples:
             if key in d:
-                kwargs[field.name] = des(d[key])
+                kwargs[name] = des(d[key])
         return t(**kwargs)
 
     return des_dataclass_with_keys
