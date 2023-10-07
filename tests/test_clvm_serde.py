@@ -69,13 +69,14 @@ def test_ser():
     @dataclass
     class Foo:
         a: int
-        b: str = field(default="foo", metadata=dict(key="bob"))
+        b: str
 
     tp = to_program_for_type(Foo)
     foo = Foo(100, "boss")
-    assert tp(foo) == Program.to([100, "boss"])
+    rhs = Program.to([100, "boss"])
+    assert tp(foo) == rhs
     fp = from_program_for_type(Foo)
-    assert foo == fp(tp(foo))
+    assert foo == fp(rhs)
 
     @dataclass
     class Nested:
@@ -89,7 +90,23 @@ def test_ser():
     fp = from_program_for_type(Nested)
     assert nested == fp(tp(nested))
 
-    Foo._use_keys = 1
+    @dataclass
+    class Foo:
+        a: int
+        b: str = field(default="foo", metadata=dict(key="bob"))
+
+    tp = to_program_for_type(Foo)
+    foo = Foo(100, "boss")
+    rhs = Program.to([100, ("bob", "boss")])
+    assert tp(foo) == rhs
+    fp = from_program_for_type(Foo)
+    assert foo == fp(rhs)
+
+    @dataclass
+    class Foo:
+        a: int = field(metadata=dict(key="a"))
+        b: str = field(default="foo", metadata=dict(key="bob"))
+
     tp = to_program_for_type(Foo)
     fp = from_program_for_type(Foo)
     p = Program.to([("a", 1000), ("bob", "hello")])
@@ -188,9 +205,6 @@ class UnsignedSpend:
 
     def coin_spends(self):
         return [coin_spend_from_tuple(_) for _ in self.coin_spend_tuples]
-
-
-UnsignedSpend._use_keys = True
 
 
 def coin_spend_from_tuple(cst: CoinSpendTuple) -> CoinSpend:

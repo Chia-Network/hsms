@@ -88,59 +88,51 @@ SERIALIZER_COMPOUND_TYPE_LOOKUP = {
 }
 
 
-def make_ser_for_dcf(f_name: str, f_type: type, *args):
-    ser_for_field = type_tree(f_type, *args)
-
+def make_ser_for_dcf(f_name: str, ser_for_field: Callable):
     def f(obj):
         return ser_for_field(getattr(obj, f_name))
 
     return f
 
 
-def ser_dataclass(t: type, *etc):
-    # handle regular dataclass
-    streaming_calls = []
-    for field in fields(t):
-        streaming_calls.append(make_ser_for_dcf(field.name, field.type, *etc))
+def field_info_for_type(t: type, *etc):
+    # split into key-based and location-based
 
-    def serialize_dataclass(item):
-        return Program.to([sc(item) for sc in streaming_calls])
-
-    return serialize_dataclass
-
-
-def field_tuples_for_type(t: type, *etc):
-    field_tuples = []
+    key_based = []
+    location_based = []
     for f in fields(t):
         default_value = (
             f.default if f.default_factory is MISSING else f.default_factory()
         )
-        t = (
-            default_value,
-            f.name,
-            type_tree(f.type, *etc),
-            f.metadata.get("key", f.name),
-        )
-        field_tuples.append(t)
-    return field_tuples
+        key = f.metadata.get("key")
+        call = type_tree(f.type, *etc)
+        if key is None:
+            location_based.append((f.name, call))
+        else:
+            key_based.append((f.name, call, key, default_value))
+
+    return location_based, key_based
 
 
-def ser_dataclass_with_keys(t: type, *etc):
-    # handle key-based data class
+def ser_dataclass(t: type, *etc):
+    location_based, key_based = field_info_for_type(t, *etc)
 
-    field_tuples = field_tuples_for_type(t, *etc)
+    streaming_calls = []
+    for name, ser in location_based:
+        streaming_calls.append(make_ser_for_dcf(name, ser))
 
-    def s_dataclass_with_keys(obj: t) -> Program:
-        pairs = []
-        for default_value, name, ser, key in field_tuples:
-            v = getattr(obj, name)
+    def ser(item):
+        pairs = [sc(item) for sc in streaming_calls]
+
+        for name, ser, key, default_value in key_based:
+            v = getattr(item, name)
             if v == default_value:
                 continue
             pt = PairTuple(key, ser(v))
             pairs.append(pt)
         return Program.to(pairs)
 
-    return s_dataclass_with_keys
+    return ser
 
 
 def fail_ser(t, *args):
@@ -151,49 +143,33 @@ def fail_ser(t, *args):
         return lambda x: Program.to(bytes(x))
 
     if is_dataclass(t):
-        if hasattr(t, "_use_keys"):
-            return ser_dataclass_with_keys(t, *args)
-        else:
-            return ser_dataclass(t, *args)
+        return ser_dataclass(t, *args)
 
     raise TypeError(f"can't process {t}")
 
 
-def deser_dataclass_with_keys(t: type, *args):
-    # handle key-based data class
+def deser_dataclass(t: type, *args):
+    location_based, key_based = field_info_for_type(t, *args)
 
-    field_tuples = field_tuples_for_type(t, *args)
+    def des(p: Program):
+        args = []
+        for name, des in location_based:
+            args.append(des(p.pair[0]))
+            p = p.pair[1]
 
-    def des_dataclass_with_keys(p: Program):
-        d = dict((k.atom.decode(), v) for k, v in (_.pair for _ in p.as_iter()))
         kwargs = {}
-        for default_value, name, des, key in field_tuples:
+        for name, des, key, default_value in key_based:
+            d = dict((k.atom.decode(), v) for k, v in (_.pair for _ in p.as_iter()))
             if key in d:
                 kwargs[name] = des(d[key])
-        return t(**kwargs)
+        return t(*args, **kwargs)
 
-    return des_dataclass_with_keys
-
-
-def deser_dataclass(t: type, *args):
-    # handle regular dataclass
-
-    tuple_type = tuple[*list(field.type for field in fields(t))]
-    des_f = type_tree(tuple_type, *args)
-
-    def des_dataclass(p: Program):
-        values = des_f(p)
-        return t(*values)
-
-    return des_dataclass
+    return des
 
 
 def fail_deser(t, *args):
     if is_dataclass(t):
-        if hasattr(t, "_use_keys"):
-            return deser_dataclass_with_keys(t, *args)
-        else:
-            return deser_dataclass(t, *args)
+        return deser_dataclass(t, *args)
 
     if hasattr(t, "from_bytes"):
         return lambda p: t.from_bytes(p.atom)
