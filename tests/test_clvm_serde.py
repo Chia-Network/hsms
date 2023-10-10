@@ -161,6 +161,7 @@ def test_serde_nonexpandable():
     p1 = tp(foo)
     assert p1 == p
 
+
 def rnd_coin_spend(seed: int) -> CoinSpend:
     r = random.Random(seed)
     parent = r.randbytes(32)
@@ -171,7 +172,10 @@ def rnd_coin_spend(seed: int) -> CoinSpend:
     return CoinSpend(coin, puzzle, solution)
 
 
-SumHint = PairTuple[list[BLSPublicKey], BLSSecretExponent]
+@dataclass
+class SumHint(Nonexpandable):
+    public_keys: list[BLSPublicKey]
+    synthetic_offset: BLSSecretExponent
 
 
 def test_interop_sum_hint():
@@ -184,8 +188,8 @@ def test_interop_sum_hint():
     print(bytes(p).hex())
     lsh = LegacySH.from_program(p)
     print(lsh)
-    assert lsh.public_keys == sum_hint[0]
-    assert lsh.synthetic_offset == sum_hint[1]
+    assert lsh.public_keys == sum_hint.public_keys
+    assert lsh.synthetic_offset == sum_hint.synthetic_offset
     sh1 = fp(p)
     assert sum_hint == sh1
 
@@ -193,7 +197,10 @@ def test_interop_sum_hint():
 CoinSpendTuple = tuple[bytes, Program, int, Program]
 
 
-PathHint = PairTuple[BLSPublicKey, list[int]]
+@dataclass
+class PathHint(Nonexpandable):
+    root_public_key: BLSPublicKey
+    path: list[int]
 
 
 def test_interop_path_hint():
@@ -206,8 +213,8 @@ def test_interop_path_hint():
     print(bytes(p).hex())
     lph = LegacyPH.from_program(p)
     print(lph)
-    assert lph.root_public_key == path_hint[0]
-    assert lph.path == path_hint[1]
+    assert lph.root_public_key == path_hint.root_public_key
+    assert lph.path == path_hint.path
     ph1 = fp(p)
     assert path_hint == ph1
 
