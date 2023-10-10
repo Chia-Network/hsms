@@ -15,6 +15,7 @@ from hsms.util.clvm_serde import (
     to_program_for_type,
     from_program_for_type,
     PairTuple,
+    Nonexpandable,
 )
 
 from .core.unsigned_spend import (
@@ -128,6 +129,37 @@ def test_ser():
         f1 = fp(p)
         assert f1 == foo
 
+
+def test_serde_nonexpandable():
+    @dataclass
+    class Foo(Nonexpandable):
+        a: int
+        b: str
+
+    tp = to_program_for_type(Foo)
+    fp = from_program_for_type(Foo)
+    p = Program.to((1000, "hello"))
+    foo = fp(p)
+    assert foo.a == 1000
+    assert foo.b == "hello"
+    p1 = tp(foo)
+    assert p1 == p
+
+    @dataclass
+    class Bar(Nonexpandable):
+        a: int
+        b: str
+        c: list[int]
+
+    tp = to_program_for_type(Bar)
+    fp = from_program_for_type(Bar)
+    p = Program.to((1000, ("hello", [5, 19, 220])))
+    foo = fp(p)
+    assert foo.a == 1000
+    assert foo.b == "hello"
+    assert foo.c == [5, 19, 220]
+    p1 = tp(foo)
+    assert p1 == p
 
 def rnd_coin_spend(seed: int) -> CoinSpend:
     r = random.Random(seed)

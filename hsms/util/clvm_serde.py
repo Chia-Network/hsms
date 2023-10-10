@@ -13,6 +13,15 @@ class PairTuple(tuple):
         return super().__new__(cls, (a, b))
 
 
+class Nonexpandable:
+    """
+    This is a tag. Subclasses, when serialized, don't use a nil terminator when
+    serialized.
+    """
+
+    pass
+
+
 # some helper methods to implement chia serialization
 #
 def read_bytes(p: Program) -> bytes:
@@ -114,6 +123,24 @@ def field_info_for_type(t: type, *etc):
     return location_based, key_based
 
 
+def ser_nonexpandable(t: type, *etc):
+    location_based, key_based = field_info_for_type(t, *etc)
+    if key_based:
+        raise ValueError("key-based fields not support for `Nonexpandable`")
+
+    streaming_calls = []
+    for name, ser in location_based:
+        streaming_calls.append(make_ser_for_dcf(name, ser))
+
+    def ser(item):
+        values = [sc(item) for sc in streaming_calls]
+        t = values.pop()
+        while values:
+            t = (values.pop(), t)
+        return Program.to(t)
+    return ser
+
+
 def ser_dataclass(t: type, *etc):
     location_based, key_based = field_info_for_type(t, *etc)
 
@@ -142,10 +169,38 @@ def fail_ser(t, *args):
     if hasattr(t, "__bytes__"):
         return lambda x: Program.to(bytes(x))
 
+    if issubclass(t, Nonexpandable):
+        return ser_nonexpandable(t, *args)
+
     if is_dataclass(t):
         return ser_dataclass(t, *args)
 
     raise TypeError(f"can't process {t}")
+
+
+def deser_nonexpandable(t: type, *etc):
+    location_based, key_based = field_info_for_type(t, *etc)
+    if key_based:
+        raise ValueError("key-based fields not support for `Nonexpandable`")
+
+    streaming_calls = []
+    for name, ser in location_based:
+        streaming_calls.append(make_ser_for_dcf(name, ser))
+
+    def des(p: Program):
+        args = []
+        todo = list(reversed(location_based))
+        while todo:
+            name, des = todo.pop()
+            if todo:
+                v = p.pair[0]
+                p = p.pair[1]
+            else:
+                v = p
+            args.append(des(v))
+        return t(*args)
+
+    return des
 
 
 def deser_dataclass(t: type, *args):
@@ -168,6 +223,9 @@ def deser_dataclass(t: type, *args):
 
 
 def fail_deser(t, *args):
+    if issubclass(t, Nonexpandable):
+        return deser_nonexpandable(t, *args)
+
     if is_dataclass(t):
         return deser_dataclass(t, *args)
 
