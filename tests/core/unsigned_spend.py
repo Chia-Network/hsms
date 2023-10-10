@@ -7,12 +7,10 @@ from clvm_rs import Program
 
 from hsms.util.clvm_serde import PairTuple
 
+from .signing_hints import PathHint, SumHint
 
-SumHint = PairTuple[list[BLSPublicKey], BLSSecretExponent]
 
 CoinSpendTuple = tuple[bytes, Program, int, Program]
-
-PathHint = PairTuple[BLSPublicKey, list[int]]
 
 
 @dataclass
@@ -50,12 +48,3 @@ def coin_spend_to_tuple(coin_spend: CoinSpend) -> CoinSpendTuple:
         coin.amount,
         coin_spend.solution,
     )
-
-
-def sum_hint_as_tuple(sum_hint: SumHint) -> tuple:
-    keys = "public_keys synthetic_offset".split()
-    return tuple(getattr(sum_hint, _) for _ in keys)
-
-
-def path_hint_as_tuple(path_hint: PathHint) -> tuple:
-    return tuple(getattr(path_hint, _) for _ in "root_public_key path".split())

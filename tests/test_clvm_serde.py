@@ -17,12 +17,11 @@ from hsms.util.clvm_serde import (
     PairTuple,
     Nonexpandable,
 )
-
+from .core.signing_hints import SumHint, PathHint
 from .core.unsigned_spend import (
     UnsignedSpend,
     coin_spend_to_tuple,
-    sum_hint_as_tuple,
-    path_hint_as_tuple,
+    coin_spend_from_tuple,
 )
 
 
@@ -172,12 +171,6 @@ def rnd_coin_spend(seed: int) -> CoinSpend:
     return CoinSpend(coin, puzzle, solution)
 
 
-@dataclass
-class SumHint(Nonexpandable):
-    public_keys: list[BLSPublicKey]
-    synthetic_offset: BLSSecretExponent
-
-
 def test_interop_sum_hint():
     pks = [BLSSecretExponent.from_int(_).public_key() for _ in range(5)]
     synthetic_offset = BLSSecretExponent.from_int(3**70 & ((1 << 256) - 1))
@@ -195,12 +188,6 @@ def test_interop_sum_hint():
 
 
 CoinSpendTuple = tuple[bytes, Program, int, Program]
-
-
-@dataclass
-class PathHint(Nonexpandable):
-    root_public_key: BLSPublicKey
-    path: list[int]
 
 
 def test_interop_path_hint():
@@ -258,8 +245,12 @@ def test_interop_unsigned_spend():
     print(bytes(p).hex())
     lus = LegacyUS.from_program(p)
     assert lus.coin_spends == us.coin_spends()
-    assert [sum_hint_as_tuple(_) for _ in lus.sum_hints] == us.sum_hints
-    assert [path_hint_as_tuple(_) for _ in lus.path_hints] == us.path_hints
+    for k in "public_keys synthetic_offset".split():
+        for lh, rh in zip(lus.sum_hints, us.sum_hints):
+            assert getattr(lh, k) == getattr(rh, k)
+    for k in "root_public_key path".split():
+        for lh, rh in zip(lus.path_hints, us.path_hints):
+            assert getattr(lh, k) == getattr(rh, k)
     assert lus.agg_sig_me_network_suffix == us.agg_sig_me_network_suffix
     us1 = fp(p)
     assert us == us1
