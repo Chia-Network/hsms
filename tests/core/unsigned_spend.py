@@ -1,11 +1,8 @@
 from dataclasses import dataclass, field
 
-from chia_base.bls12_381 import BLSPublicKey, BLSSecretExponent
 from chia_base.core import Coin, CoinSpend
 
 from clvm_rs import Program
-
-from hsms.util.clvm_serde import PairTuple
 
 from .signing_hints import PathHint, SumHint
 

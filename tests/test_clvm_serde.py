@@ -14,8 +14,7 @@ from hsms.process.signing_hints import (
 from hsms.util.clvm_serde import (
     to_program_for_type,
     from_program_for_type,
-    PairTuple,
-    Nonexpandable,
+    Frugal,
     tuple_frugal,
 )
 from .core.signing_hints import SumHint, PathHint
@@ -61,7 +60,7 @@ def test_ser():
         assert tp(t) == prhs
         assert fp(tp(t)) == t
 
-    tt = PairTuple[int, str]
+    tt = tuple_frugal[int, str]
     tp = to_program_for_type(tt)
     fp = from_program_for_type(tt)
     for v in [
@@ -69,7 +68,7 @@ def test_ser():
         (200, "two hundred"),
         (30, "thirty"),
     ]:
-        t = PairTuple(*v)
+        t = tuple_frugal(v)
         rhs = Program.to(t)
         assert tp(t) == rhs
         assert fp(tp(t)) == t
@@ -132,7 +131,7 @@ def test_ser():
 
 def test_serde_nonexpandable():
     @dataclass
-    class Foo(Nonexpandable):
+    class Foo(Frugal):
         a: int
         b: str
 
@@ -146,7 +145,7 @@ def test_serde_nonexpandable():
     assert p1 == p
 
     @dataclass
-    class Bar(Nonexpandable):
+    class Bar(Frugal):
         a: int
         b: str
         c: list[int]

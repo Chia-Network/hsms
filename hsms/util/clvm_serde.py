@@ -12,16 +12,11 @@ class EncodingError(BaseException):
     pass
 
 
-class PairTuple(tuple):
-    def __new__(cls, a, b):
-        return super().__new__(cls, (a, b))
-
-
 class tuple_frugal(tuple):
     pass
 
 
-class Nonexpandable:
+class Frugal:
     """
     This is a tag. Subclasses, when serialized, don't use a nil terminator when
     serialized.
@@ -118,7 +113,6 @@ SERIALIZER_COMPOUND_TYPE_LOOKUP = {
     list: serialize_for_list,
     tuple: serialize_for_tuple,
     tuple_frugal: ser_for_tuple_frugal,
-    PairTuple: serialize_for_pair_tuple,
     # Union: to_program_for_union,
     # UnionType: to_program_for_union,
 }
@@ -172,7 +166,7 @@ def types_for_fields(t: type, *etc):
 def ser_nonexpandable(t: type, *etc):
     location_based, key_based = types_for_fields(t, *etc)
     if key_based:
-        raise ValueError("key-based fields not support for `Nonexpandable`")
+        raise ValueError("key-based fields not support for `Frugal`")
 
     names = [f.name for f in location_based]
     types = tuple(f.type for f in location_based)
@@ -225,7 +219,7 @@ def fail_ser(t, *args):
     if hasattr(t, "__bytes__"):
         return lambda x: Program.to(bytes(x))
 
-    if issubclass(t, Nonexpandable):
+    if issubclass(t, Frugal):
         return ser_nonexpandable(t, *args)
 
     if is_dataclass(t):
@@ -237,7 +231,7 @@ def fail_ser(t, *args):
 def deser_nonexpandable(t: type, *etc):
     location_based, key_based = types_for_fields(t, *etc)
     if key_based:
-        raise ValueError("key-based fields not support for `Nonexpandable`")
+        raise ValueError("key-based fields not support for `Frugal`")
 
     types = tuple(f.type for f in location_based)
     tuple_type = GenericAlias(tuple_frugal, types)
@@ -290,7 +284,7 @@ def deser_dataclass(t: type, *etc):
 
 
 def fail_deser(t, *args):
-    if issubclass(t, Nonexpandable):
+    if issubclass(t, Frugal):
         return deser_nonexpandable(t, *args)
 
     if is_dataclass(t):
@@ -351,15 +345,6 @@ def de_for_tuple_frugal(origin, args, *etc):
     return de
 
 
-def deser_for_pair_tuple(origin, args, *etc):
-    read_items = [type_tree(_, *etc) for _ in args]
-
-    def deserialize_tuple(p: Program) -> tuple[int, Any]:
-        return PairTuple(*[f(_) for f, _ in zip(read_items, p.pair)])
-
-    return deserialize_tuple
-
-
 def deser_for_union(origin, args, *etc):
     item_type = optional_from_union(args)
     if item_type is not None:
@@ -379,7 +364,6 @@ DESERIALIZER_COMPOUND_TYPE_LOOKUP = {
     list: deser_for_list,
     tuple: deser_for_tuple,
     tuple_frugal: de_for_tuple_frugal,
-    PairTuple: deser_for_pair_tuple,
     # Union: deser_for_union,
     # UnionType: deser_for_union,
 }
