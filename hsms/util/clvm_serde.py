@@ -144,7 +144,7 @@ def field_info_for_type(t: type, *etc):
     return location_based, key_based
 
 
-def types_for_fields(t: type, *etc):
+def types_for_fields(t: type, call_morpher, *etc):
     # split into key-based and location-based
 
     key_based = []
@@ -153,40 +153,39 @@ def types_for_fields(t: type, *etc):
         default_value = (
             f.default if f.default_factory is MISSING else f.default_factory()
         )
-        key = f.metadata.get("key")
+        m = f.metadata
+        key = m.get("key")
         if key is None:
             location_based.append(f)
         else:
-            call = type_tree(f.type, *etc)
-            key_based.append((key, f.name, call, default_value))
+            alt_serde_type = m.get("alt_serde_type")
+            storage_type = alt_serde_type[0] if alt_serde_type else f.type
+            call = type_tree(storage_type, *etc)
+            key_based.append(
+                (key, f.name, call_morpher(call, alt_serde_type), default_value)
+            )
 
     return location_based, key_based
 
 
-def ser_nonexpandable(t: type, *etc):
-    location_based, key_based = types_for_fields(t, *etc)
-    if key_based:
-        raise ValueError("key-based fields not support for `Frugal`")
-
-    names = [f.name for f in location_based]
-    types = tuple(f.type for f in location_based)
-    tuple_type = GenericAlias(tuple_frugal, types)
-    ser_tuple = type_tree(tuple_type, *etc)
-
-    def ser(item):
-        t = tuple_frugal(getattr(item, attr) for attr in names)
-        return Program.to(ser_tuple(t))
-
-    return ser
-
-
 def ser_dataclass(t: type, *etc):
-    location_based, key_based = types_for_fields(t, *etc)
+    def make_new_call(call, alt_serde_type):
+        if alt_serde_type:
+            _type, from_storage, _to_storage = alt_serde_type
+
+            def f(x):
+                return call(from_storage(x))
+
+            return f
+        return call
+
+    location_based, key_based = types_for_fields(t, make_new_call, *etc)
 
     types = tuple(f.type for f in location_based)
     tuple_type = GenericAlias(tuple, types)
     if key_based:
         types = types + (list[tuple_frugal[str, Program]],)
+    if key_based or issubclass(t, Frugal):
         tuple_type = GenericAlias(tuple_frugal, types)
 
     names = tuple(f.name for f in location_based)
@@ -219,38 +218,30 @@ def fail_ser(t, *args):
     if hasattr(t, "__bytes__"):
         return lambda x: Program.to(bytes(x))
 
-    if issubclass(t, Frugal):
-        return ser_nonexpandable(t, *args)
-
     if is_dataclass(t):
         return ser_dataclass(t, *args)
 
     raise TypeError(f"can't process {t}")
 
 
-def deser_nonexpandable(t: type, *etc):
-    location_based, key_based = types_for_fields(t, *etc)
-    if key_based:
-        raise ValueError("key-based fields not support for `Frugal`")
-
-    types = tuple(f.type for f in location_based)
-    tuple_type = GenericAlias(tuple_frugal, types)
-    de_tuple = type_tree(tuple_type, *etc)
-
-    def de(p: Program):
-        the_tuple = de_tuple(p)
-        return t(*the_tuple)
-
-    return de
-
-
 def deser_dataclass(t: type, *etc):
-    location_based, key_based = types_for_fields(t, *etc)
+    def make_new_call(call, alt_serde_type):
+        if alt_serde_type:
+            _type, _from_storage, to_storage = alt_serde_type
+
+            def f(x):
+                return to_storage(call(x))
+
+            return f
+        return call
+
+    location_based, key_based = types_for_fields(t, make_new_call, *etc)
 
     types = tuple(f.type for f in location_based)
     tuple_type = GenericAlias(tuple, types)
     if key_based:
         types = types + (list[tuple_frugal[str, Program]],)
+    if key_based or issubclass(t, Frugal):
         tuple_type = GenericAlias(tuple_frugal, types)
 
     de_tuple = type_tree(tuple_type, *etc)
@@ -259,8 +250,8 @@ def deser_dataclass(t: type, *etc):
 
         def de(p: Program):
             the_tuple = de_tuple(p)
-            d = dict((k, v) for k, v in the_tuple[-1])
             args = the_tuple[:-1]
+            d = dict((k, v) for k, v in the_tuple[-1])
             kwargs = {}
             for key, name, call, default_value in key_based:
                 if key in d:
@@ -284,9 +275,6 @@ def deser_dataclass(t: type, *etc):
 
 
 def fail_deser(t, *args):
-    if issubclass(t, Frugal):
-        return deser_nonexpandable(t, *args)
-
     if is_dataclass(t):
         return deser_dataclass(t, *args)
 
