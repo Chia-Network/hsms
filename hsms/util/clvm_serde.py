@@ -8,9 +8,17 @@ from clvm_rs import Program
 from .type_tree import type_tree
 
 
+class EncodingError(BaseException):
+    pass
+
+
 class PairTuple(tuple):
     def __new__(cls, a, b):
         return super().__new__(cls, (a, b))
+
+
+class tuple_nonexpandable(tuple):
+    pass
 
 
 class Nonexpandable:
@@ -88,9 +96,28 @@ def ser_for_union(origin, args, *etc):
         return serialize_optional
 
 
+def ser_for_tuple_nonexpandable(origin, args, *etc):
+    streaming_calls = [type_tree(_, *etc) for _ in args]
+
+    def ser(item):
+        if len(item) != len(streaming_calls):
+            raise EncodingError("incorrect number of items in tuple")
+
+        values = list(zip(streaming_calls, item))
+        sc, v = values.pop()
+        t = sc(v)
+        while values:
+            sc, v = values.pop()
+            t = (sc(v), t)
+        return Program.to(t)
+
+    return ser
+
+
 SERIALIZER_COMPOUND_TYPE_LOOKUP = {
     list: serialize_for_list,
     tuple: serialize_for_tuple,
+    tuple_nonexpandable: ser_for_tuple_nonexpandable,
     PairTuple: serialize_for_pair_tuple,
     # Union: to_program_for_union,
     # UnionType: to_program_for_union,
@@ -138,6 +165,7 @@ def ser_nonexpandable(t: type, *etc):
         while values:
             t = (values.pop(), t)
         return Program.to(t)
+
     return ser
 
 
@@ -265,6 +293,25 @@ def deser_for_tuple(origin, args, *etc):
     return deserialize_tuple
 
 
+def de_for_tuple_nonexpandable(origin, args, *etc):
+    read_items = [type_tree(_, *etc) for _ in args]
+
+    def de(p: Program) -> tuple[int, Any]:
+        args = []
+        todo = list(reversed(read_items))
+        while todo:
+            des = todo.pop()
+            if todo:
+                v = p.pair[0]
+                p = p.pair[1]
+            else:
+                v = p
+            args.append(des(v))
+        return tuple(args)
+
+    return de
+
+
 def deser_for_pair_tuple(origin, args, *etc):
     read_items = [type_tree(_, *etc) for _ in args]
 
@@ -292,6 +339,7 @@ def deser_for_union(origin, args, *etc):
 DESERIALIZER_COMPOUND_TYPE_LOOKUP = {
     list: deser_for_list,
     tuple: deser_for_tuple,
+    tuple_nonexpandable: de_for_tuple_nonexpandable,
     PairTuple: deser_for_pair_tuple,
     # Union: deser_for_union,
     # UnionType: deser_for_union,
