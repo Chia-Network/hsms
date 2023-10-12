@@ -2,16 +2,16 @@ from dataclasses import dataclass
 
 from chia_base.bls12_381 import BLSPublicKey, BLSSecretExponent
 
-from hsms.util.clvm_serde import Nonexpandable
+from hsms.util.clvm_serde import Frugal
 
 
 @dataclass
-class SumHint(Nonexpandable):
+class SumHint(Frugal):
     public_keys: list[BLSPublicKey]
     synthetic_offset: BLSSecretExponent
 
 
 @dataclass
-class PathHint(Nonexpandable):
+class PathHint(Frugal):
     root_public_key: BLSPublicKey
     path: list[int]
