@@ -16,7 +16,7 @@ from hsms.util.clvm_serde import (
     from_program_for_type,
     PairTuple,
     Nonexpandable,
-    tuple_nonexpandable,
+    tuple_frugal,
 )
 from .core.signing_hints import SumHint, PathHint
 from .core.unsigned_spend import (
@@ -257,8 +257,8 @@ def test_interop_unsigned_spend():
     assert us == us1
 
 
-def test_tuple_nonexpandable():
-    Foo = tuple_nonexpandable[int, str, bytes]
+def test_tuple_frugal():
+    Foo = tuple_frugal[int, str, bytes]
 
     tp = to_program_for_type(Foo)
     fp = from_program_for_type(Foo)

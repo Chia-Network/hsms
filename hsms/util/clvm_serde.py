@@ -1,5 +1,5 @@
 from dataclasses import is_dataclass, fields, MISSING
-from typing import Any, BinaryIO, Callable, GenericAlias, get_type_hints
+from typing import Any, BinaryIO, Callable, GenericAlias
 
 from chia_base.atoms import bytes32, uint8
 
@@ -17,7 +17,7 @@ class PairTuple(tuple):
         return super().__new__(cls, (a, b))
 
 
-class tuple_nonexpandable(tuple):
+class tuple_frugal(tuple):
     pass
 
 
@@ -96,7 +96,7 @@ def ser_for_union(origin, args, *etc):
         return serialize_optional
 
 
-def ser_for_tuple_nonexpandable(origin, args, *etc):
+def ser_for_tuple_frugal(origin, args, *etc):
     streaming_calls = [type_tree(_, *etc) for _ in args]
 
     def ser(item):
@@ -117,7 +117,7 @@ def ser_for_tuple_nonexpandable(origin, args, *etc):
 SERIALIZER_COMPOUND_TYPE_LOOKUP = {
     list: serialize_for_list,
     tuple: serialize_for_tuple,
-    tuple_nonexpandable: ser_for_tuple_nonexpandable,
+    tuple_frugal: ser_for_tuple_frugal,
     PairTuple: serialize_for_pair_tuple,
     # Union: to_program_for_union,
     # UnionType: to_program_for_union,
@@ -163,7 +163,8 @@ def types_for_fields(t: type, *etc):
         if key is None:
             location_based.append(f)
         else:
-            key_based.append((key, f.name, f.type, default_value))
+            call = type_tree(f.type, *etc)
+            key_based.append((key, f.name, call, default_value))
 
     return location_based, key_based
 
@@ -175,33 +176,44 @@ def ser_nonexpandable(t: type, *etc):
 
     names = [f.name for f in location_based]
     types = tuple(f.type for f in location_based)
-    tuple_type = GenericAlias(tuple_nonexpandable, types)
+    tuple_type = GenericAlias(tuple_frugal, types)
     ser_tuple = type_tree(tuple_type, *etc)
 
     def ser(item):
-        t = tuple_nonexpandable(getattr(item, attr) for attr in names)
+        t = tuple_frugal(getattr(item, attr) for attr in names)
         return Program.to(ser_tuple(t))
 
     return ser
 
 
 def ser_dataclass(t: type, *etc):
-    location_based, key_based = field_info_for_type(t, *etc)
+    location_based, key_based = types_for_fields(t, *etc)
 
-    streaming_calls = []
-    for name, ser in location_based:
-        streaming_calls.append(make_ser_for_dcf(name, ser))
+    types = tuple(f.type for f in location_based)
+    tuple_type = GenericAlias(tuple, types)
+    if key_based:
+        types = types + (list[tuple_frugal[str, Program]],)
+        tuple_type = GenericAlias(tuple_frugal, types)
+
+    names = tuple(f.name for f in location_based)
+
+    ser_tuple = type_tree(tuple_type, *etc)
 
     def ser(item):
-        pairs = [sc(item) for sc in streaming_calls]
+        # convert to a tuple
+        v = []
+        for name in names:
+            v.append(getattr(item, name))
+        if key_based:
+            d = []
+            for key, name, call, default_value in key_based:
+                a = getattr(item, name)
+                if a == default_value:
+                    continue
+                d.append((key, call(a)))
+            v.append(d)
 
-        for name, ser, key, default_value in key_based:
-            v = getattr(item, name)
-            if v == default_value:
-                continue
-            pt = PairTuple(key, ser(v))
-            pairs.append(pt)
-        return Program.to(pairs)
+        return ser_tuple(tuple(v))
 
     return ser
 
@@ -228,7 +240,7 @@ def deser_nonexpandable(t: type, *etc):
         raise ValueError("key-based fields not support for `Nonexpandable`")
 
     types = tuple(f.type for f in location_based)
-    tuple_type = GenericAlias(tuple_nonexpandable, types)
+    tuple_type = GenericAlias(tuple_frugal, types)
     de_tuple = type_tree(tuple_type, *etc)
 
     def de(p: Program):
@@ -238,23 +250,43 @@ def deser_nonexpandable(t: type, *etc):
     return de
 
 
-def deser_dataclass(t: type, *args):
-    location_based, key_based = field_info_for_type(t, *args)
+def deser_dataclass(t: type, *etc):
+    location_based, key_based = types_for_fields(t, *etc)
 
-    def des(p: Program):
-        args = []
-        for name, des in location_based:
-            args.append(des(p.pair[0]))
-            p = p.pair[1]
+    types = tuple(f.type for f in location_based)
+    tuple_type = GenericAlias(tuple, types)
+    if key_based:
+        types = types + (list[tuple_frugal[str, Program]],)
+        tuple_type = GenericAlias(tuple_frugal, types)
 
-        kwargs = {}
-        for name, des, key, default_value in key_based:
-            d = dict((k.atom.decode(), v) for k, v in (_.pair for _ in p.as_iter()))
-            if key in d:
-                kwargs[name] = des(d[key])
-        return t(*args, **kwargs)
+    de_tuple = type_tree(tuple_type, *etc)
 
-    return des
+    if key_based:
+
+        def de(p: Program):
+            the_tuple = de_tuple(p)
+            d = dict((k, v) for k, v in the_tuple[-1])
+            args = the_tuple[:-1]
+            kwargs = {}
+            for key, name, call, default_value in key_based:
+                if key in d:
+                    kwargs[name] = call(d[key])
+                else:
+                    if default_value == MISSING:
+                        raise EncodingError(
+                            f"missing required field for {name} with key {key}"
+                        )
+                    kwargs[name] = default_value
+
+            return t(*args, **kwargs)
+
+    else:
+
+        def de(p: Program):
+            the_tuple = de_tuple(p)
+            return t(*the_tuple)
+
+    return de
 
 
 def fail_deser(t, *args):
@@ -300,7 +332,7 @@ def deser_for_tuple(origin, args, *etc):
     return deserialize_tuple
 
 
-def de_for_tuple_nonexpandable(origin, args, *etc):
+def de_for_tuple_frugal(origin, args, *etc):
     read_items = [type_tree(_, *etc) for _ in args]
 
     def de(p: Program) -> tuple[int, Any]:
@@ -346,7 +378,7 @@ def deser_for_union(origin, args, *etc):
 DESERIALIZER_COMPOUND_TYPE_LOOKUP = {
     list: deser_for_list,
     tuple: deser_for_tuple,
-    tuple_nonexpandable: de_for_tuple_nonexpandable,
+    tuple_frugal: de_for_tuple_frugal,
     PairTuple: deser_for_pair_tuple,
     # Union: deser_for_union,
     # UnionType: deser_for_union,
