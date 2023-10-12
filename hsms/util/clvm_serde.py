@@ -1,5 +1,5 @@
 from dataclasses import is_dataclass, fields, MISSING
-from typing import Any, BinaryIO, Callable, get_type_hints
+from typing import Any, BinaryIO, Callable, GenericAlias, get_type_hints
 
 from chia_base.atoms import bytes32, uint8
 
@@ -150,21 +150,37 @@ def field_info_for_type(t: type, *etc):
     return location_based, key_based
 
 
+def types_for_fields(t: type, *etc):
+    # split into key-based and location-based
+
+    key_based = []
+    location_based = []
+    for f in fields(t):
+        default_value = (
+            f.default if f.default_factory is MISSING else f.default_factory()
+        )
+        key = f.metadata.get("key")
+        if key is None:
+            location_based.append(f)
+        else:
+            key_based.append((key, f.name, f.type, default_value))
+
+    return location_based, key_based
+
+
 def ser_nonexpandable(t: type, *etc):
-    location_based, key_based = field_info_for_type(t, *etc)
+    location_based, key_based = types_for_fields(t, *etc)
     if key_based:
         raise ValueError("key-based fields not support for `Nonexpandable`")
 
-    streaming_calls = []
-    for name, ser in location_based:
-        streaming_calls.append(make_ser_for_dcf(name, ser))
+    names = [f.name for f in location_based]
+    types = tuple(f.type for f in location_based)
+    tuple_type = GenericAlias(tuple_nonexpandable, types)
+    ser_tuple = type_tree(tuple_type, *etc)
 
     def ser(item):
-        values = [sc(item) for sc in streaming_calls]
-        t = values.pop()
-        while values:
-            t = (values.pop(), t)
-        return Program.to(t)
+        t = tuple_nonexpandable(getattr(item, attr) for attr in names)
+        return Program.to(ser_tuple(t))
 
     return ser
 
@@ -207,28 +223,19 @@ def fail_ser(t, *args):
 
 
 def deser_nonexpandable(t: type, *etc):
-    location_based, key_based = field_info_for_type(t, *etc)
+    location_based, key_based = types_for_fields(t, *etc)
     if key_based:
         raise ValueError("key-based fields not support for `Nonexpandable`")
 
-    streaming_calls = []
-    for name, ser in location_based:
-        streaming_calls.append(make_ser_for_dcf(name, ser))
+    types = tuple(f.type for f in location_based)
+    tuple_type = GenericAlias(tuple_nonexpandable, types)
+    de_tuple = type_tree(tuple_type, *etc)
 
-    def des(p: Program):
-        args = []
-        todo = list(reversed(location_based))
-        while todo:
-            name, des = todo.pop()
-            if todo:
-                v = p.pair[0]
-                p = p.pair[1]
-            else:
-                v = p
-            args.append(des(v))
-        return t(*args)
+    def de(p: Program):
+        the_tuple = de_tuple(p)
+        return t(*the_tuple)
 
-    return des
+    return de
 
 
 def deser_dataclass(t: type, *args):
