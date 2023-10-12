@@ -129,7 +129,7 @@ def test_ser():
         assert f1 == foo
 
 
-def test_serde_nonexpandable():
+def test_serde_frugal():
     @dataclass
     class Foo(Frugal):
         a: int
@@ -269,3 +269,20 @@ def test_tuple_frugal():
     p1 = tp(foo)
     assert p1 == p
 
+
+def test_dataclasses_transform():
+    @dataclass
+    class Foo:
+        a: int = field(
+            metadata=dict(alt_serde_type=(str, str, int), key="a"),
+        )
+        b: str = field(default="foo", metadata=dict(key="bob"))
+
+    tp = to_program_for_type(Foo)
+    fp = from_program_for_type(Foo)
+    p = Program.to([("a", "1000"), ("bob", "hello")])
+    foo = fp(p)
+    assert foo.a == 1000
+    assert foo.b == "hello"
+    p1 = tp(foo)
+    assert p1 == p
