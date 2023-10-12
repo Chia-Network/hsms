@@ -125,25 +125,6 @@ def make_ser_for_dcf(f_name: str, ser_for_field: Callable):
     return f
 
 
-def field_info_for_type(t: type, *etc):
-    # split into key-based and location-based
-
-    key_based = []
-    location_based = []
-    for f in fields(t):
-        default_value = (
-            f.default if f.default_factory is MISSING else f.default_factory()
-        )
-        key = f.metadata.get("key")
-        call = type_tree(f.type, *etc)
-        if key is None:
-            location_based.append((f.name, call))
-        else:
-            key_based.append((f.name, call, key, default_value))
-
-    return location_based, key_based
-
-
 def types_for_fields(t: type, call_morpher, *etc):
     # split into key-based and location-based
 
@@ -169,7 +150,7 @@ def types_for_fields(t: type, call_morpher, *etc):
 
 
 def ser_dataclass(t: type, *etc):
-    def make_new_call(call, alt_serde_type):
+    def morph_call(call, alt_serde_type):
         if alt_serde_type:
             _type, from_storage, _to_storage = alt_serde_type
 
@@ -179,7 +160,7 @@ def ser_dataclass(t: type, *etc):
             return f
         return call
 
-    location_based, key_based = types_for_fields(t, make_new_call, *etc)
+    location_based, key_based = types_for_fields(t, morph_call, *etc)
 
     types = tuple(f.type for f in location_based)
     tuple_type = GenericAlias(tuple, types)
@@ -225,7 +206,7 @@ def fail_ser(t, *args):
 
 
 def deser_dataclass(t: type, *etc):
-    def make_new_call(call, alt_serde_type):
+    def morph_call(call, alt_serde_type):
         if alt_serde_type:
             _type, _from_storage, to_storage = alt_serde_type
 
@@ -235,7 +216,7 @@ def deser_dataclass(t: type, *etc):
             return f
         return call
 
-    location_based, key_based = types_for_fields(t, make_new_call, *etc)
+    location_based, key_based = types_for_fields(t, morph_call, *etc)
 
     types = tuple(f.type for f in location_based)
     tuple_type = GenericAlias(tuple, types)
