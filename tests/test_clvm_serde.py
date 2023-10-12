@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 import random
 
-from chia_base.bls12_381 import BLSPublicKey, BLSSecretExponent
+from chia_base.bls12_381 import BLSSecretExponent
 from chia_base.core import Coin, CoinSpend
 
 from clvm_rs import Program
@@ -18,11 +18,7 @@ from hsms.util.clvm_serde import (
     tuple_frugal,
 )
 from .core.signing_hints import SumHint, PathHint
-from .core.unsigned_spend import (
-    UnsignedSpend,
-    coin_spend_to_tuple,
-    coin_spend_from_tuple,
-)
+from .core.unsigned_spend import UnsignedSpend, from_storage, to_storage
 
 
 def test_ser():
@@ -207,22 +203,16 @@ def test_interop_path_hint():
 
 
 def test_interop_coin_spend():
-    for _ in range(10):
-        cs = rnd_coin_spend(_)
-        cst = coin_spend_to_tuple(cs)
-        tp = to_program_for_type(CoinSpendTuple)
-        fp = from_program_for_type(CoinSpendTuple)
-        p = tp(cst)
-        print(bytes(p).hex())
-        cst1 = fp(p)
-        assert cst == cst1
+    cs_list = [rnd_coin_spend(_) for _ in range(10)]
+    cst = from_storage(cs_list)
+    cs_list_1 = to_storage(cst)
+    assert cs_list == cs_list_1
 
 
 def test_interop_unsigned_spend():
     from hsms.process.unsigned_spend import UnsignedSpend as LegacyUS
 
     cs_list = [rnd_coin_spend(_) for _ in range(10)]
-    cst_list = [coin_spend_to_tuple(_) for _ in cs_list]
 
     secret_keys = [BLSSecretExponent.from_int(_) for _ in range(5)]
     public_keys = [_.public_key() for _ in secret_keys]
@@ -235,7 +225,7 @@ def test_interop_unsigned_spend():
     lph = LegacyPH(pubkey, ints)
 
     suffix = b"a" * 32
-    us = UnsignedSpend(cst_list[0:3], [sum_hint], [path_hint], suffix)
+    us = UnsignedSpend(cs_list[0:3], [sum_hint], [path_hint], suffix)
 
     lus = LegacyUS(cs_list[0:3], [lsh], [lph], suffix)
     print(bytes(lus.as_program()).hex())
@@ -244,7 +234,7 @@ def test_interop_unsigned_spend():
     p = tp(us)
     print(bytes(p).hex())
     lus = LegacyUS.from_program(p)
-    assert lus.coin_spends == us.coin_spends()
+    assert lus.coin_spends == us.coin_spends
     for k in "public_keys synthetic_offset".split():
         for lh, rh in zip(lus.sum_hints, us.sum_hints):
             assert getattr(lh, k) == getattr(rh, k)
