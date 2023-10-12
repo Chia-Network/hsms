@@ -16,6 +16,7 @@ from hsms.util.clvm_serde import (
     from_program_for_type,
     PairTuple,
     Nonexpandable,
+    tuple_nonexpandable,
 )
 from .core.signing_hints import SumHint, PathHint
 from .core.unsigned_spend import (
@@ -254,3 +255,18 @@ def test_interop_unsigned_spend():
     assert lus.agg_sig_me_network_suffix == us.agg_sig_me_network_suffix
     us1 = fp(p)
     assert us == us1
+
+
+def test_tuple_nonexpandable():
+    Foo = tuple_nonexpandable[int, str, bytes]
+
+    tp = to_program_for_type(Foo)
+    fp = from_program_for_type(Foo)
+    p = Program.to((1000, ("hello", b"bob")))
+    foo = fp(p)
+    assert foo[0] == 1000
+    assert foo[1] == "hello"
+    assert foo[2] == b"bob"
+    p1 = tp(foo)
+    assert p1 == p
+
