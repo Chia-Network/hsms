@@ -118,13 +118,6 @@ SERIALIZER_COMPOUND_TYPE_LOOKUP = {
 }
 
 
-def make_ser_for_dcf(f_name: str, ser_for_field: Callable):
-    def f(obj):
-        return ser_for_field(getattr(obj, f_name))
-
-    return f
-
-
 def types_for_fields(t: type, call_morpher, *etc):
     # split into key-based and location-based
 
@@ -142,15 +135,14 @@ def types_for_fields(t: type, call_morpher, *etc):
             alt_serde_type = m.get("alt_serde_type")
             storage_type = alt_serde_type[0] if alt_serde_type else f.type
             call = type_tree(storage_type, *etc)
-            key_based.append(
-                (key, f.name, call_morpher(call, alt_serde_type), default_value)
-            )
+            key_based.append((key, f.name, call_morpher(call, f), default_value))
 
     return location_based, key_based
 
 
 def ser_dataclass(t: type, *etc):
-    def morph_call(call, alt_serde_type):
+    def morph_call(call, f):
+        alt_serde_type = f.metadata.get("alt_serde_type")
         if alt_serde_type:
             _type, from_storage, _to_storage = alt_serde_type
 
@@ -206,7 +198,8 @@ def fail_ser(t, *args):
 
 
 def deser_dataclass(t: type, *etc):
-    def morph_call(call, alt_serde_type):
+    def morph_call(call, f):
+        alt_serde_type = f.metadata.get("alt_serde_type")
         if alt_serde_type:
             _type, _from_storage, to_storage = alt_serde_type
 
