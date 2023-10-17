@@ -8,11 +8,10 @@ from chia_base.core import CoinSpend
 
 from clvm_rs import Program
 
+from hsms.core.signing_hints import SumHint, SumHints, PathHint, PathHints
+from hsms.core.unsigned_spend import SignatureInfo, UnsignedSpend
 from hsms.consensus.conditions import conditions_by_opcode
 from hsms.puzzles.conlang import AGG_SIG_ME, AGG_SIG_UNSAFE
-
-from .signing_hints import SumHint, SumHints, PathHint, PathHints
-from .unsigned_spend import SignatureInfo, UnsignedSpend
 
 MAX_COST = 1 << 34
 

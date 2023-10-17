@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from chia_base.bls12_381 import BLSPublicKey, BLSSecretExponent
 
-from hsms.util.clvm_serialization import (
+from .clvm_serialization import (
     clvm_to_list_of_ints,
     clvm_to_list,
 )

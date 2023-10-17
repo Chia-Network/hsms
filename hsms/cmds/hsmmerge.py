@@ -5,8 +5,8 @@ import argparse
 from chia_base.bls12_381 import BLSSignature
 from chia_base.core import SpendBundle
 
-from hsms.process.unsigned_spend import UnsignedSpend
-from hsms.process.sign import generate_synthetic_offset_signatures
+from hsms.core.unsigned_spend import UnsignedSpend
+from hsms.core.sign import generate_synthetic_offset_signatures
 from hsms.util.qrint_encoding import a2b_qrint
 
 

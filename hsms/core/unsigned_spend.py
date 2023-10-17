@@ -1,9 +1,14 @@
 from dataclasses import dataclass, field
 
+from chia_base.bls12_381 import BLSPublicKey, BLSSignature
 from chia_base.core import Coin, CoinSpend
 
 from clvm_rs import Program
 
+from hsms.util.clvm_serde import (
+    to_program_for_type,
+    from_program_for_type,
+)
 from .signing_hints import PathHint, SumHint
 
 
@@ -35,9 +40,16 @@ def from_storage(
 
 
 @dataclass
+class SignatureInfo:
+    signature: BLSSignature
+    partial_public_key: BLSPublicKey
+    final_public_key: BLSPublicKey
+    message: bytes
+
+
+@dataclass
 class UnsignedSpend:
     coin_spends: list[CoinSpend] = field(
-        default_factory=list,
         metadata=dict(
             key="c",
             alt_serde_type=(
@@ -59,3 +71,11 @@ class UnsignedSpend:
         default=b"",
         metadata=dict(key="a"),
     )
+
+
+TO_PROGRAM = to_program_for_type(UnsignedSpend)
+FROM_PROGRAM = from_program_for_type(UnsignedSpend)
+
+
+UnsignedSpend.__bytes__ = lambda self: bytes(TO_PROGRAM(self))
+UnsignedSpend.from_bytes = lambda blob: FROM_PROGRAM(Program.from_bytes(blob))

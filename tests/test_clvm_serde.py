@@ -7,9 +7,12 @@ from chia_base.core import Coin, CoinSpend
 
 from clvm_rs import Program
 
-from hsms.process.signing_hints import (
-    SumHint as LegacySH,
-    PathHint as LegacyPH,
+from hsms.core.signing_hints import SumHint, PathHint
+from hsms.core.unsigned_spend import (
+    UnsignedSpend,
+    from_storage,
+    to_storage,
+    TO_PROGRAM,
 )
 from hsms.util.clvm_serde import (
     to_program_for_type,
@@ -17,8 +20,11 @@ from hsms.util.clvm_serde import (
     Frugal,
     tuple_frugal,
 )
-from .core.signing_hints import SumHint, PathHint
-from .core.unsigned_spend import UnsignedSpend, from_storage, to_storage
+from .legacy.signing_hints import (
+    SumHint as LegacySH,
+    PathHint as LegacyPH,
+)
+from .legacy.unsigned_spend import UnsignedSpend as LegacyUS
 
 
 def test_ser():
@@ -210,8 +216,6 @@ def test_interop_coin_spend():
 
 
 def test_interop_unsigned_spend():
-    from hsms.process.unsigned_spend import UnsignedSpend as LegacyUS
-
     cs_list = [rnd_coin_spend(_) for _ in range(10)]
 
     secret_keys = [BLSSecretExponent.from_int(_) for _ in range(5)]
@@ -230,6 +234,10 @@ def test_interop_unsigned_spend():
     lus = LegacyUS(cs_list[0:3], [lsh], [lph], suffix)
     print(bytes(lus.as_program()).hex())
     tp = to_program_for_type(UnsignedSpend)
+    # TODO: remove this temporary hack
+    # we add `__bytes__` to `UnsignedSpend` which changes how `to_program_for_type`
+    # works
+    tp = TO_PROGRAM
     fp = from_program_for_type(UnsignedSpend)
     p = tp(us)
     print(bytes(p).hex())
