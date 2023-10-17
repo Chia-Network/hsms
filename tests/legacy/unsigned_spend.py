@@ -7,8 +7,7 @@ from chia_base.core import Coin, CoinSpend
 
 from clvm_rs import Program
 
-from hsms.process.signing_hints import SumHint, PathHint
-from hsms.util.clvm_serialization import (
+from .clvm_serialization import (
     as_atom,
     as_int,
     clvm_to_list,
@@ -17,6 +16,7 @@ from hsms.util.clvm_serialization import (
     transform_dict_by_key,
     transform_as_struct,
 )
+from .signing_hints import SumHint, PathHint
 
 
 @dataclass

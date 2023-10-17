@@ -4,7 +4,7 @@ import zlib
 
 from hsms.clvm.disasm import disassemble
 from hsms.cmds.hsms import summarize_unsigned_spend
-from hsms.process.unsigned_spend import UnsignedSpend
+from hsms.core.unsigned_spend import UnsignedSpend
 from hsms.util.qrint_encoding import a2b_qrint
 
 

@@ -67,16 +67,6 @@ def serialize_for_tuple(origin, args, *etc):
     return serialize_tuple
 
 
-def serialize_for_pair_tuple(origin, args, *etc):
-    write_items = [type_tree(_, *etc) for _ in args]
-
-    def serialize_tuple(items):
-        as_tuple = tuple(wi(_) for wi, _ in zip(write_items, items))
-        return Program.to(as_tuple)
-
-    return serialize_tuple
-
-
 def ser_for_union(origin, args, *etc):
     item_type = optional_from_union(args)
     if item_type is not None:
@@ -179,7 +169,7 @@ def ser_dataclass(t: type, *etc):
                 d.append((key, call(a)))
             v.append(d)
 
-        return ser_tuple(tuple(v))
+        return ser_tuple(v)
 
     return ser
 

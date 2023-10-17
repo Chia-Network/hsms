@@ -17,8 +17,8 @@ from clvm_rs import Program
 import segno
 
 from hsms.consensus.conditions import conditions_by_opcode
+from hsms.core.unsigned_spend import UnsignedSpend
 from hsms.process.sign import conditions_for_coin_spend, sign
-from hsms.process.unsigned_spend import UnsignedSpend
 from hsms.puzzles import conlang
 from hsms.util.byte_chunks import ChunkAssembler
 from hsms.util.qrint_encoding import a2b_qrint, b2a_qrint
