@@ -5,7 +5,7 @@ from chia_base.core import Coin, CoinSpend
 
 from clvm_rs import Program
 
-from hsms.util.clvm_serde import (
+from hsms.clvm_serde import (
     to_program_for_type,
     from_program_for_type,
 )

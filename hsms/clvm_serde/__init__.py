@@ -5,7 +5,7 @@ from chia_base.atoms import bytes32, uint8
 
 from clvm_rs import Program
 
-from .type_tree import TypeTree
+from hsms.util.type_tree import TypeTree
 
 
 class EncodingError(BaseException):
