@@ -5,7 +5,7 @@ from chia_base.atoms import bytes32, uint8
 
 from clvm_rs import Program
 
-from .type_tree import type_tree
+from .type_tree import TypeTree
 
 
 class EncodingError(BaseException):
@@ -41,8 +41,8 @@ def read_int(p: Program) -> int:
     return Program.int_from_bytes(read_bytes(p))
 
 
-def serialize_for_list(origin, args, *etc):
-    write_item = type_tree(args[0], *etc)
+def serialize_for_list(origin, args, type_tree: TypeTree):
+    write_item = type_tree(args[0])
 
     def serialize_list(items):
         return Program.to([write_item(_) for _ in items])
@@ -50,8 +50,8 @@ def serialize_for_list(origin, args, *etc):
     return serialize_list
 
 
-def serialize_for_tuple(origin, args, *etc):
-    write_items = [type_tree(_, *etc) for _ in args]
+def serialize_for_tuple(origin, args, type_tree: TypeTree):
+    write_items = [type_tree(_) for _ in args]
 
     def serialize_tuple(items):
         return Program.to(
@@ -67,10 +67,10 @@ def serialize_for_tuple(origin, args, *etc):
     return serialize_tuple
 
 
-def ser_for_union(origin, args, *etc):
+def ser_for_union(origin, args, type_tree: TypeTree):
     item_type = optional_from_union(args)
     if item_type is not None:
-        write_item = type_tree(item_type, *etc)
+        write_item = type_tree(item_type)
 
         def serialize_optional(f, item):
             c = 0 if item is None else 1
@@ -81,8 +81,8 @@ def ser_for_union(origin, args, *etc):
         return serialize_optional
 
 
-def ser_for_tuple_frugal(origin, args, *etc):
-    streaming_calls = [type_tree(_, *etc) for _ in args]
+def ser_for_tuple_frugal(origin, args, type_tree: TypeTree):
+    streaming_calls = [type_tree(_, ) for _ in args]
 
     def ser(item):
         if len(item) != len(streaming_calls):
@@ -108,7 +108,7 @@ SERIALIZER_COMPOUND_TYPE_LOOKUP = {
 }
 
 
-def types_for_fields(t: type, call_morpher, *etc):
+def types_for_fields(t: type, call_morpher, type_tree: TypeTree):
     # split into key-based and location-based
 
     key_based = []
@@ -124,13 +124,13 @@ def types_for_fields(t: type, call_morpher, *etc):
         else:
             alt_serde_type = m.get("alt_serde_type")
             storage_type = alt_serde_type[0] if alt_serde_type else f.type
-            call = type_tree(storage_type, *etc)
+            call = type_tree(storage_type)
             key_based.append((key, f.name, call_morpher(call, f), default_value))
 
     return location_based, key_based
 
 
-def ser_dataclass(t: type, *etc):
+def ser_dataclass(t: type, type_tree: TypeTree):
     def morph_call(call, f):
         alt_serde_type = f.metadata.get("alt_serde_type")
         if alt_serde_type:
@@ -142,7 +142,7 @@ def ser_dataclass(t: type, *etc):
             return f
         return call
 
-    location_based, key_based = types_for_fields(t, morph_call, *etc)
+    location_based, key_based = types_for_fields(t, morph_call, type_tree)
 
     types = tuple(f.type for f in location_based)
     tuple_type = GenericAlias(tuple, types)
@@ -153,7 +153,7 @@ def ser_dataclass(t: type, *etc):
 
     names = tuple(f.name for f in location_based)
 
-    ser_tuple = type_tree(tuple_type, *etc)
+    ser_tuple = type_tree(tuple_type)
 
     def ser(item):
         # convert to a tuple
@@ -187,7 +187,7 @@ def fail_ser(t, *args):
     raise TypeError(f"can't process {t}")
 
 
-def deser_dataclass(t: type, *etc):
+def deser_dataclass(t: type, type_tree: TypeTree):
     def morph_call(call, f):
         alt_serde_type = f.metadata.get("alt_serde_type")
         if alt_serde_type:
@@ -199,7 +199,7 @@ def deser_dataclass(t: type, *etc):
             return f
         return call
 
-    location_based, key_based = types_for_fields(t, morph_call, *etc)
+    location_based, key_based = types_for_fields(t, morph_call, type_tree)
 
     types = tuple(f.type for f in location_based)
     tuple_type = GenericAlias(tuple, types)
@@ -208,7 +208,7 @@ def deser_dataclass(t: type, *etc):
     if key_based or issubclass(t, Frugal):
         tuple_type = GenericAlias(tuple_frugal, types)
 
-    de_tuple = type_tree(tuple_type, *etc)
+    de_tuple = type_tree(tuple_type)
 
     if key_based:
 
@@ -249,27 +249,26 @@ def fail_deser(t, *args):
 
 
 def to_program_for_type(t: type) -> Callable[[dict[str, Any]], Program]:
-    return type_tree(
-        t,
+    return TypeTree(
         {Program: lambda x: x},
         SERIALIZER_COMPOUND_TYPE_LOOKUP,
         fail_ser,
-    )
+    )(t)
 
 
-def deser_for_list(origin, args, *etc):
-    read_item = type_tree(args[0], *etc)
+def deser_for_list(origin, args, type_tree: TypeTree):
+    read_item = type_tree(args[0])
 
-    def deserialize_list(p: Program) -> tuple[int, Any]:
+    def deserialize_list(p: Program) -> list:
         return [read_item(_) for _ in p.as_iter()]
 
     return deserialize_list
 
 
-def deser_for_tuple(origin, args, *etc):
-    read_items = [type_tree(_, *etc) for _ in args]
+def deser_for_tuple(origin, args, type_tree: TypeTree):
+    read_items = [type_tree(_) for _ in args]
 
-    def deserialize_tuple(p: Program) -> tuple[int, Any]:
+    def deserialize_tuple(p: Program) -> tuple[Any, ...]:
         items = list(p.as_iter())
         if len(items) != len(read_items):
             raise EncodingError("wrong size program")
@@ -278,8 +277,8 @@ def deser_for_tuple(origin, args, *etc):
     return deserialize_tuple
 
 
-def de_for_tuple_frugal(origin, args, *etc):
-    read_items = [type_tree(_, *etc) for _ in args]
+def de_for_tuple_frugal(origin, args, type_tree: TypeTree):
+    read_items = [type_tree(_) for _ in args]
 
     def de(p: Program) -> tuple[int, Any]:
         args = []
@@ -297,10 +296,10 @@ def de_for_tuple_frugal(origin, args, *etc):
     return de
 
 
-def deser_for_union(origin, args, *etc):
+def deser_for_union(origin, args, type_tree: TypeTree):
     item_type = optional_from_union(args)
     if item_type is not None:
-        read_item = type_tree(item_type, *etc)
+        read_item = type_tree(item_type)
 
         def deserialize_optional(f: BinaryIO) -> tuple[int, Any]:
             v = uint8.parse(f)
@@ -329,8 +328,7 @@ def optional_from_union(args: type) -> Callable[[dict[str, Any]], bytes] | None:
 
 
 def from_program_for_type(t: type) -> Callable[[memoryview, int], tuple[int, Any]]:
-    return type_tree(
-        t,
+    return TypeTree(
         {
             bytes: read_bytes,
             bytes32: read_bytes,
@@ -340,7 +338,7 @@ def from_program_for_type(t: type) -> Callable[[memoryview, int], tuple[int, Any
         },
         DESERIALIZER_COMPOUND_TYPE_LOOKUP,
         fail_deser,
-    )
+    )(t)
 
 
 def merging_function_for_callable_parameters(f: Callable) -> Callable:

@@ -1,44 +1,53 @@
-from typing import Callable, get_origin, get_args, TypeVar
+from dataclasses import dataclass
+
+from types import GenericAlias
+from typing import (
+    Callable,
+    get_origin,
+    get_args,
+    Optional,
+    Type,
+    TypeVar,
+    Generic,
+)
 
 
-_T = TypeVar("_T")
-SimpleTypeLookup = dict[type, _T]
-CompoundLookup = dict[
-    type,
-    Callable[
-        [type, type, SimpleTypeLookup[_T], "CompoundLookup[_T]", "OtherHandler[_T]"], _T
-    ],
-]
-OtherHandler = Callable[
-    [type, SimpleTypeLookup[_T], CompoundLookup[_T], "OtherHandler[_T]"], _T
-]
+Gtype = type | GenericAlias
+T = TypeVar("T")
+SimpleTypeLookup = dict[Type, T]
+CompoundLookup = dict[Type, Callable[[Type, tuple[Type, ...], "TypeTree"], T]]
+OtherHandler = Callable[[Type, "TypeTree"], Optional[T]]
 
 
-def type_tree(
-    t: type,
-    simple_type_lookup: SimpleTypeLookup[_T],
-    compound_type_lookup: CompoundLookup[
-        Callable[
-            [type, type, SimpleTypeLookup[_T], CompoundLookup[_T], OtherHandler[_T]], _T
-        ]
-    ],
-    other_f: OtherHandler[_T],
-) -> _T:
+@dataclass
+class TypeTree(Generic[T]):
     """
-    Recursively descend a "type tree" invoking the appropriate functions.
-
-    `simple_type_lookup`: a type to callable look-up. Must return a `_T` value.
+    `simple_type_lookup`: a type to callable look-up. Must return a `T` value.
     `compound_type_lookup`: recursively handle compound types like `list` and `tuple`.
-    `other_f`: a function to take a type and return
-
-    This function is helpful for run-time building a complex function that operates
-    on a complex type out of simpler functions that operate on base types.
+    `other_f`: a function to take a type and return a `T` value
     """
-    origin = get_origin(t)
-    f = compound_type_lookup.get(origin)
-    if f:
-        return f(origin, get_args(t), simple_type_lookup, compound_type_lookup, other_f)
-    f = simple_type_lookup.get(t)
-    if f:
-        return f
-    return other_f(t, simple_type_lookup, compound_type_lookup, other_f)
+
+    simple_type_lookup: SimpleTypeLookup[T]
+    compound_lookup: CompoundLookup[T]
+    other_handler: OtherHandler[T]
+
+    def __call__(self, t: Type) -> T:
+        """
+        Recursively descend a "type tree" invoking the appropriate functions.
+
+        This function is helpful for run-time building a complex function that operates
+        on a complex type out of simpler functions that operate on base types.
+        """
+        origin: None | Type = get_origin(t)
+        if origin is not None:
+            f = self.compound_lookup.get(origin)
+            if f:
+                args: tuple[Type, ...] = get_args(t)
+                return f(origin, args, self)
+        g = self.simple_type_lookup.get(t)
+        if g:
+            return g
+        r = self.other_handler(t, self)
+        if r:
+            return r
+        raise ValueError(f"unable to handle type {t}")
