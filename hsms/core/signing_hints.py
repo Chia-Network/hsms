@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from chia_base.bls12_381 import BLSPublicKey, BLSSecretExponent
 
-from hsms.util.clvm_serde import Frugal
+from hsms.clvm_serde import Frugal
 
 
 @dataclass
