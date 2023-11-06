@@ -59,12 +59,12 @@ following mechanism:
 
 import hashlib
 
-from clvm_rs import Program
+from clvm_rs import Program  # type: ignore
 
 from chia_base.atoms import bytes32
 from chia_base.bls12_381 import BLSPublicKey, BLSSecretExponent
 
-from chialisp_puzzles import load_puzzle
+from chialisp_puzzles import load_puzzle  # type: ignore
 
 from .p2_conditions import puzzle_for_conditions
 

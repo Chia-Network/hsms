@@ -6,7 +6,7 @@ from chia_base.atoms import bytes32, hexbytes
 from chia_base.bls12_381 import BLSPublicKey, BLSSecretExponent
 from chia_base.core import CoinSpend
 
-from clvm_rs import Program
+from clvm_rs import Program  # type: ignore
 
 from hsms.core.signing_hints import SumHint, SumHints, PathHint, PathHints
 from hsms.core.unsigned_spend import SignatureInfo, UnsignedSpend
@@ -23,7 +23,7 @@ class SignatureMetadata:
     message: bytes
 
 
-CONDITIONS_FOR_COIN_SPEND: Dict[CoinSpend, Program] = WeakKeyDictionary()
+CONDITIONS_FOR_COIN_SPEND: WeakKeyDictionary[CoinSpend, Program] = WeakKeyDictionary()
 
 
 def conditions_for_coin_spend(coin_spend: CoinSpend) -> Program:
@@ -134,7 +134,7 @@ def verify_pairs_for_conditions(
 
     agg_sig_unsafe_conditions = d.get(AGG_SIG_UNSAFE, [])
     for condition in agg_sig_unsafe_conditions:
-        yield BLSPublicKey.from_bytes(condition.at("rf"), hexbytes(condition.at("rrf")))
+        yield BLSPublicKey.from_bytes(condition.at("rf")), hexbytes(condition.at("rrf"))
 
 
 def secret_key_for_public_key(
@@ -152,10 +152,10 @@ def partial_signature_metadata_for_hsm(
     conditions: Program,
     sum_hints: SumHints,
     path_hints: PathHints,
-    agg_sig_me_network_suffix: bytes32,
+    agg_sig_me_message_suffix: bytes,
 ) -> Iterable[SignatureMetadata]:
     for final_public_key, message in verify_pairs_for_conditions(
-        conditions, agg_sig_me_network_suffix
+        conditions, agg_sig_me_message_suffix,
     ):
         sum_hint = sum_hints.get(final_public_key) or SumHint(
             [final_public_key], BLSSecretExponent.zero()

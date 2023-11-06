@@ -3,7 +3,7 @@ import hashlib
 import sys
 import zlib
 
-from clvm_rs import Program
+from clvm_rs import Program  # type: ignore
 
 from chia_base.bls12_381 import BLSPublicKey
 from chia_base.core import Coin, CoinSpend

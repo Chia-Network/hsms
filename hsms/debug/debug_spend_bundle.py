@@ -3,7 +3,7 @@ from typing import List
 from chia_base.core import Coin
 from chia_base.util.std_hash import std_hash
 
-from clvm_rs import Program
+from clvm_rs import Program  # type: ignore
 
 from hsms.clvm.disasm import disassemble as bu_disassemble, KEYWORD_FROM_ATOM
 from hsms.consensus.conditions import conditions_by_opcode
