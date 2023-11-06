@@ -3,6 +3,7 @@ import zlib
 from tests.generate import se_generate, bytes32_generate, uint256_generate
 
 from chia_base.core import Coin, CoinSpend, SpendBundle
+from chia_base.cbincode.util import from_bytes, to_bytes
 
 from hsms.core.signing_hints import SumHint, PathHint
 from hsms.core.unsigned_spend import UnsignedSpend
@@ -77,7 +78,7 @@ def test_lifecycle():
     ]
 
     for coin in coins:
-        c = Coin.from_bytes(bytes(coin))
+        c = from_bytes(Coin, to_bytes(coin))
         assert c == coin
 
     # the destination puzzle hashes are nonsense, but that's okay
@@ -154,7 +155,7 @@ def test_lifecycle():
     signatures = signatures_A + signatures_B
     spend_bundle = create_spend_bundle(unsigned_spend, signatures)
 
-    sb2 = SpendBundle.from_bytes(bytes(spend_bundle))
+    sb2 = from_bytes(SpendBundle, to_bytes(spend_bundle))
     assert sb2 == spend_bundle
 
     validates = debug_spend_bundle(spend_bundle)

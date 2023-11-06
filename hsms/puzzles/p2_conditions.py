@@ -10,9 +10,9 @@ require a delegated puzzle program, so in those cases, this is just what
 the doctor ordered.
 """
 
-from clvm_rs import Program
+from clvm_rs import Program  # type: ignore
 
-from chialisp_puzzles import load_puzzle
+from chialisp_puzzles import load_puzzle  # type: ignore
 
 MOD = load_puzzle("p2_conditions")
 

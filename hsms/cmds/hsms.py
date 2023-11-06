@@ -12,7 +12,7 @@ from chia_base.atoms import bytes32
 from chia_base.bls12_381 import BLSSecretExponent, BLSSignature
 from chia_base.util.bech32 import bech32_encode
 
-from clvm_rs import Program
+from clvm_rs import Program  # type: ignore
 
 import segno
 
@@ -30,11 +30,9 @@ XCH_PER_MOJO = Decimal("1e12")
 def unsigned_spend_from_blob(blob: bytes) -> UnsignedSpend:
     try:
         uncompressed_blob = zlib.decompress(blob)
-        program = Program.from_bytes(uncompressed_blob)
-        return UnsignedSpend.from_program(program)
+        return UnsignedSpend.from_program_bytes(uncompressed_blob)
     except Exception:
-        program = Program.from_bytes(blob)
-        return UnsignedSpend.from_program(program)
+        return UnsignedSpend.from_program_bytes(blob)
 
 
 def create_unsigned_spend_pipeline(

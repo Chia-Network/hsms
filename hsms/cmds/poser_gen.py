@@ -4,10 +4,9 @@ import argparse
 
 
 from chia_base.bls12_381 import BLSPublicKey
-from chia_base.core.coin import Coin
+from chia_base.core import Coin, CoinSpend
 
 from hsms.core.unsigned_spend import UnsignedSpend
-from hsms.streamables.coin_spend import CoinSpend
 from hsms.puzzles.p2_delegated_puzzle_or_hidden_puzzle import (
     puzzle_for_synthetic_public_key,
     solution_for_conditions,

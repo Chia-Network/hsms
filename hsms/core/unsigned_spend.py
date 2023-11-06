@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from chia_base.bls12_381 import BLSPublicKey, BLSSignature
 from chia_base.core import Coin, CoinSpend
 
-from clvm_rs import Program
+from clvm_rs import Program  # type: ignore
 
 from hsms.clvm_serde import (
     to_program_for_type,
@@ -72,10 +72,13 @@ class UnsignedSpend:
         metadata=dict(key="a"),
     )
 
+    def __bytes__(self):
+        return bytes(TO_PROGRAM(self))
+
+    @classmethod
+    def from_bytes(cls, blob: bytes):
+        return FROM_PROGRAM(Program.from_bytes(blob))
+
 
 TO_PROGRAM = to_program_for_type(UnsignedSpend)
 FROM_PROGRAM = from_program_for_type(UnsignedSpend)
-
-
-UnsignedSpend.__bytes__ = lambda self: bytes(TO_PROGRAM(self))
-UnsignedSpend.from_bytes = lambda blob: FROM_PROGRAM(Program.from_bytes(blob))
