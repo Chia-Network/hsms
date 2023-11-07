@@ -5,10 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "hsms"
 description = "Hardware security module simulator for chia bls12_381 signatures"
-authors = [{name = "Richard Kiss", email = "him@richardkiss.com"}]
-license = {file = "LICENSE"}
+authors = [{ name = "Richard Kiss", email = "him@richardkiss.com" }]
+license = { file = "LICENSE" }
 readme = "README.md"
-dependencies = ["segno==1.4.1", "chia_base==0.1.3", "chialisp_puzzles==0.1.0"]
+dependencies = [
+  "segno==1.4.1",
+  "chia_base @ git+https://github.com/richardkiss/chia_base@3401836913a0c42e8ad0f8c896ee1ff065843064#egg=chia_base",
+  "chialisp_puzzles==0.1.0",
+]
 # version is defined with `setuptools_scm`
 dynamic = ["version"]
 
