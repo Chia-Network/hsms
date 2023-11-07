@@ -1,6 +1,6 @@
 from dataclasses import is_dataclass, fields, MISSING
 from types import GenericAlias
-from typing import Any, Callable, Type
+from typing import Any, Callable, Type, get_type_hints
 
 from chia_base.atoms import bytes32
 from chia_base.meta.type_tree import ArgsType, CompoundLookup, OriginArgsType, TypeTree
@@ -105,17 +105,19 @@ def types_for_fields(t: type, call_morpher, type_tree: TypeTree):
 
     key_based = []
     location_based = []
+    type_hints = get_type_hints(t)
     for f in fields(t):
+        type_hint = type_hints[f.name]
         default_value = (
             f.default if f.default_factory is MISSING else f.default_factory()
         )
         m = f.metadata
         key = m.get("key")
         if key is None:
-            location_based.append(f)
+            location_based.append((f.name, type_hint))
         else:
             alt_serde_type = m.get("alt_serde_type")
-            storage_type = alt_serde_type[0] if alt_serde_type else f.type
+            storage_type = alt_serde_type[0] if alt_serde_type else type_hint
             call = type_tree(storage_type)
             key_based.append((key, f.name, call_morpher(call, f), default_value))
 
@@ -136,7 +138,7 @@ def ser_dataclass(origin: Type, args_type: ArgsType, type_tree: TypeTree) -> Pro
 
     location_based, key_based = types_for_fields(origin, morph_call, type_tree)
 
-    types = tuple(f.type for f in location_based)
+    types = tuple(type_hint for name, type_hint in location_based)
     tuple_type = GenericAlias(tuple, types)
     if key_based:
         types = types + (
@@ -145,7 +147,7 @@ def ser_dataclass(origin: Type, args_type: ArgsType, type_tree: TypeTree) -> Pro
     if key_based or issubclass(origin, Frugal):
         tuple_type = GenericAlias(tuple_frugal, types)
 
-    names = tuple(f.name for f in location_based)
+    names = tuple(name for name, type_hint in location_based)
 
     ser_tuple = type_tree(tuple_type)
 
@@ -197,7 +199,7 @@ def deser_dataclass(origin: Type, args_type: ArgsType, type_tree: TypeTree):
 
     location_based, key_based = types_for_fields(origin, morph_call, type_tree)
 
-    types = tuple(f.type for f in location_based)
+    types = tuple(type_hint for name, type_hint in location_based)
     tuple_type = GenericAlias(tuple, types)
     if key_based:
         types = types + (
