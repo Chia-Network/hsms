@@ -163,6 +163,43 @@ def test_serde_frugal():
     assert p1 == p
 
 
+def test_subclasses():
+    # `chia-blockchain` has several int subclasses
+
+    class Foo(int):
+        pass
+
+    tp = to_program_for_type(Foo)
+    fp = from_program_for_type(Foo)
+    for v in [-1000, -1, 0, 1, 100, 25678]:
+        foo = Foo(v)
+        p = Program.to(v)
+        assert tp(foo) == p
+        assert fp(p) == foo
+
+    class Bar(bytes):
+        pass
+
+    tp = to_program_for_type(Bar)
+    fp = from_program_for_type(Bar)
+    for v in [b"", b"a", b"hello", b"a84kdhb8" * 500]:
+        bar = Bar(v)
+        p = Program.to(v)
+        assert tp(bar) == p
+        assert fp(p) == bar
+
+    class Baz(str):
+        pass
+
+    tp = to_program_for_type(Baz)
+    fp = from_program_for_type(Baz)
+    for v in ["", "a", "hello", "a84kdhb8" * 500]:
+        baz = Baz(v)
+        p = Program.to(v)
+        assert tp(baz) == p
+        assert fp(p) == baz
+
+
 def rnd_coin_spend(seed: int) -> CoinSpend:
     r = random.Random(seed)
     parent = r.randbytes(32)
