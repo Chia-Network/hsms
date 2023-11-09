@@ -32,7 +32,7 @@ class Frugal:
 #
 def read_bytes(p: Program) -> bytes:
     if p.atom is None:
-        raise EncodingError("expected atom for str")
+        raise EncodingError("expected atom")
     return p.atom
 
 
@@ -173,7 +173,7 @@ def ser_dataclass(origin: Type, args_type: ArgsType, type_tree: TypeTree) -> Pro
 def fail_ser(
     origin: Type, args_type: ArgsType, type_tree: TypeTree
 ) -> None | ToProgram:
-    if origin in [str, bytes, int]:
+    if issubclass(origin, (str, bytes, int)):
         return Program.to
 
     if is_dataclass(origin):
@@ -239,11 +239,20 @@ def deser_dataclass(origin: Type, args_type: ArgsType, type_tree: TypeTree):
 
 
 def fail_deser(origin: Type, args_type: ArgsType, type_tree: TypeTree):
+    if issubclass(origin, int):
+        return read_int
+
+    if issubclass(origin, bytes):
+        return read_bytes
+
+    if issubclass(origin, str):
+        return read_str
+
     if is_dataclass(origin):
         return deser_dataclass(origin, args_type, type_tree)
 
     if hasattr(origin, "from_bytes"):
-        return lambda p: origin.from_bytes(p.atom)
+        return lambda p: origin.from_bytes(read_bytes(p))
 
     return None
 
@@ -305,10 +314,6 @@ DESERIALIZER_COMPOUND_TYPE_LOOKUP: CompoundLookup[FromProgram] = {
 
 def from_program_for_type(t: type) -> FromProgram:
     simple_lookup: dict[OriginArgsType, FromProgram] = {
-        (bytes, None): read_bytes,
-        (bytes32, None): read_bytes,
-        (str, None): read_str,
-        (int, None): read_int,
         (Program, None): lambda x: x,
     }
     return TypeTree(
