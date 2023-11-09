@@ -61,22 +61,8 @@ def clvm_to_list(
     return r
 
 
-def clvm_list_of_bytes_to_list(
-    items: Program, from_bytes_f: Callable[[bytes], T]
-) -> List[T]:
-    return clvm_to_list(items, lambda obj: from_bytes_f(obj.atom))
-
-
 def clvm_to_list_of_ints(items: Program) -> List[int]:
     return clvm_to_list(items, lambda obj: Program.to(obj).as_int())
-
-
-def clvm_list_to_dict(
-    items: Program,
-    from_clvm_f_to_kv: Callable[[Program, Program], Tuple[K, V]],
-) -> Dict[K, V]:
-    r = clvm_to_list(items, lambda obj: from_clvm_f_to_kv(obj.pair[0], obj.pair[1]))
-    return dict(r)
 
 
 def no_op(x):

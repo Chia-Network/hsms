@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple
 from weakref import WeakKeyDictionary
 
-from chia_base.atoms import bytes32, hexbytes
+from chia_base.atoms import hexbytes
 from chia_base.bls12_381 import BLSPublicKey, BLSSecretExponent
 from chia_base.core import CoinSpend
 
@@ -128,8 +128,9 @@ def verify_pairs_for_conditions(
 
     agg_sig_me_conditions = d.get(AGG_SIG_ME, [])
     for condition in agg_sig_me_conditions:
-        yield BLSPublicKey.from_bytes(condition.at("rf").atom), hexbytes(
-            condition.at("rrf").atom + agg_sig_me_message_suffix
+        yield (
+            BLSPublicKey.from_bytes(condition.at("rf").atom),
+            hexbytes(condition.at("rrf").atom + agg_sig_me_message_suffix),
         )
 
     agg_sig_unsafe_conditions = d.get(AGG_SIG_UNSAFE, [])
@@ -155,7 +156,8 @@ def partial_signature_metadata_for_hsm(
     agg_sig_me_message_suffix: bytes,
 ) -> Iterable[SignatureMetadata]:
     for final_public_key, message in verify_pairs_for_conditions(
-        conditions, agg_sig_me_message_suffix,
+        conditions,
+        agg_sig_me_message_suffix,
     ):
         sum_hint = sum_hints.get(final_public_key) or SumHint(
             [final_public_key], BLSSecretExponent.zero()

@@ -12,7 +12,6 @@ from chia_base.atoms import bytes32
 from chia_base.bls12_381 import BLSSecretExponent, BLSSignature
 from chia_base.util.bech32 import bech32_encode
 
-from clvm_rs import Program  # type: ignore
 
 import segno
 
@@ -185,9 +184,9 @@ def create_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main():
+def main(argv=sys.argv[1:]):
     parser = create_parser()
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     return hsms(args, parser)
 
 

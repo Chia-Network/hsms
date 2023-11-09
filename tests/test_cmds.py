@@ -45,7 +45,6 @@ def get_test_cases(path):
 
 class TestCmds(unittest.TestCase):
     def invoke_tool(self, cmd_line):
-
         # capture io
         stdout_buffer = io.StringIO()
         stderr_buffer = io.StringIO()

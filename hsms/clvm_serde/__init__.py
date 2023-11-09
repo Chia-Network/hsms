@@ -2,7 +2,6 @@ from dataclasses import is_dataclass, fields, MISSING
 from types import GenericAlias
 from typing import Any, Callable, Type, get_type_hints
 
-from chia_base.atoms import bytes32
 from chia_base.meta.type_tree import ArgsType, CompoundLookup, OriginArgsType, TypeTree
 
 from clvm_rs import Program  # type: ignore
@@ -11,7 +10,7 @@ ToProgram = Callable[[Any], Program]
 FromProgram = Callable[[Program], Any]
 
 
-class EncodingError(BaseException):
+class EncodingError(ValueError):
     pass
 
 
@@ -57,6 +56,9 @@ def serialize_for_tuple(origin, args, type_tree: TypeTree) -> Program:
     write_items = [type_tree(_) for _ in args]
 
     def serialize_tuple(items):
+        item_list = list(items)
+        if len(item_list) != len(write_items):
+            raise EncodingError("incorrect number of items in tuple")
         return Program.to(
             [
                 write_f(item)
@@ -321,13 +323,3 @@ def from_program_for_type(t: type) -> FromProgram:
         DESERIALIZER_COMPOUND_TYPE_LOOKUP,
         fail_deser,
     )(t)
-
-
-def merging_function_for_callable_parameters(f: Callable) -> Callable:
-    parameter_names = [k for k in f.__annotations__.keys() if k != "return"]
-
-    def merging_function(*args, **kwargs) -> tuple[Any, ...]:
-        merged_args = args + tuple(kwargs[_] for _ in parameter_names[len(args) :])
-        return merged_args
-
-    return merging_function

@@ -53,13 +53,6 @@ class UnsignedSpend:
         d = transform_dict(program, transform_dict_by_key(UNSIGNED_SPEND_TRANSFORMER))
         return cls(d["c"], d.get("s", []), d.get("p", []), d["a"])
 
-    def __bytes__(self):
-        return bytes(self.as_program())
-
-    @classmethod
-    def from_bytes(cls, blob) -> "UnsignedSpend":
-        return cls.from_program(Program.from_bytes(blob))
-
 
 def coin_spend_from_program(program: Program) -> CoinSpend:
     struct = transform_as_struct(program, as_atom, no_op, as_int, no_op)

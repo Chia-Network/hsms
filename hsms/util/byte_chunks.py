@@ -74,7 +74,6 @@ class ChunkAssembler:
         return bytes(self)
 
 
-
 def blob_for_chunks(chunks: List[bytes]) -> bytes:
     return ChunkAssembler(chunks).assemble()
 
