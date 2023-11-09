@@ -2,16 +2,19 @@ from dataclasses import dataclass, field
 
 import random
 
+import pytest
+
 from chia_base.bls12_381 import BLSSecretExponent
 from chia_base.core import Coin, CoinSpend
 
 from clvm_rs import Program  # type: ignore
 
 from hsms.clvm_serde import (
-    to_program_for_type,
     from_program_for_type,
-    Frugal,
+    to_program_for_type,
     tuple_frugal,
+    EncodingError,
+    Frugal,
 )
 from hsms.core.signing_hints import SumHint, PathHint
 from hsms.core.unsigned_spend import (
@@ -222,6 +225,7 @@ def test_interop_sum_hint():
     print(lsh)
     assert lsh.public_keys == sum_hint.public_keys
     assert lsh.synthetic_offset == sum_hint.synthetic_offset
+    assert lsh.final_public_key() == sum_hint.final_public_key()
     sh1 = fp(p)
     assert sum_hint == sh1
 
@@ -231,7 +235,7 @@ CoinSpendTuple = tuple[bytes, Program, int, Program]
 
 def test_interop_path_hint():
     public_key = BLSSecretExponent.from_int(1).public_key()
-    ints = [1, 5, 91, 29484, -99]
+    ints = [1, 5, 91, 29484, 399]
     path_hint = PathHint(public_key, ints)
     tp = to_program_for_type(PathHint)
     fp = from_program_for_type(PathHint)
@@ -241,6 +245,7 @@ def test_interop_path_hint():
     print(lph)
     assert lph.root_public_key == path_hint.root_public_key
     assert lph.path == path_hint.path
+    assert lph.public_key() == path_hint.public_key()
     ph1 = fp(p)
     assert path_hint == ph1
 
@@ -321,3 +326,39 @@ def test_dataclasses_transform():
     assert foo.b == "hello"
     p1 = tp(foo)
     assert p1 == p
+
+
+def test_failures():
+    fp = from_program_for_type(bytes)
+    with pytest.raises(EncodingError):
+        fp(Program.to([1, 2]))
+
+    tp = to_program_for_type(tuple_frugal[int])
+    with pytest.raises(EncodingError):
+        tp((1, 2))
+
+    fp = from_program_for_type(tuple_frugal[int])
+    with pytest.raises(EncodingError):
+        fp(Program.to((1, 2)))
+
+    tp = to_program_for_type(tuple[int])
+    with pytest.raises(EncodingError):
+        tp((1, 2))
+
+    fp = from_program_for_type(tuple[int])
+    with pytest.raises(EncodingError):
+        fp(Program.to([1, 2]))
+
+    with pytest.raises(ValueError):
+        from_program_for_type(object)
+
+    with pytest.raises(ValueError):
+        to_program_for_type(object)
+
+    @dataclass
+    class Foo:
+        a: int = field(metadata=dict(key="a"))
+
+    fp = from_program_for_type(Foo)
+    with pytest.raises(EncodingError):
+        fp(Program.to([]))

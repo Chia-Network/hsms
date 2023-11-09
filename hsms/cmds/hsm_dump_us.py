@@ -2,7 +2,6 @@ import argparse
 import sys
 import zlib
 
-from hsms.clvm.disasm import disassemble
 from hsms.cmds.hsms import summarize_unsigned_spend
 from hsms.core.unsigned_spend import UnsignedSpend
 from hsms.util.qrint_encoding import a2b_qrint
@@ -15,27 +14,6 @@ def file_or_string(p) -> str:
     except Exception:
         text = p
     return text
-
-
-def dump_coin_spend(coin_spend):
-    coin = coin_spend.coin
-    print(f"parent coin: {coin.parent_coin_info.hex()}")
-    print(f"     amount: {coin.amount}")
-    print("     puzzle:", end="")
-    if coin_spend.puzzle_reveal.tree_hash() == coin.puzzle_hash:
-        print(f" {disassemble(coin_spend.puzzle_reveal)}")
-    else:
-        print(" ** bad puzzle reveal")
-    print(f"   solution: {disassemble(coin_spend.solution)}")
-
-
-def dump_unsigned_spend(unsigned_spend):
-    count = len(unsigned_spend.coin_spends)
-    print()
-    print(f"coin count: {count}")
-    print()
-    for coin_spend in unsigned_spend.coin_spends:
-        dump_coin_spend(coin_spend)
 
 
 def fromhex_or_qrint(s: str) -> bytes:
