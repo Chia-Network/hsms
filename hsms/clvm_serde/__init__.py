@@ -1,7 +1,7 @@
 from dataclasses import is_dataclass, fields, MISSING
-from types import GenericAlias
-from typing import Any, Callable, Type, get_type_hints
+from typing import Any, Callable, List, Optional, Tuple, Type, get_type_hints
 
+from chia_base.meta.py38 import GenericAlias
 from chia_base.meta.type_tree import ArgsType, CompoundLookup, OriginArgsType, TypeTree
 
 from clvm_rs import Program  # type: ignore
@@ -174,7 +174,7 @@ def ser_dataclass(origin: Type, args_type: ArgsType, type_tree: TypeTree) -> Pro
 
 def fail_ser(
     origin: Type, args_type: ArgsType, type_tree: TypeTree
-) -> None | ToProgram:
+) -> Optional[ToProgram]:
     if issubclass(origin, (str, bytes, int)):
         return Program.to
 
@@ -279,7 +279,7 @@ def deser_for_list(origin, args, type_tree: TypeTree):
 def deser_for_tuple(origin, args, type_tree: TypeTree):
     read_items = [type_tree(_) for _ in args]
 
-    def deserialize_tuple(p: Program) -> tuple[Any, ...]:
+    def deserialize_tuple(p: Program) -> Tuple[Any, ...]:
         items = list(p.as_iter())
         if len(items) != len(read_items):
             raise EncodingError("wrong size program")
@@ -291,7 +291,7 @@ def deser_for_tuple(origin, args, type_tree: TypeTree):
 def de_for_tuple_frugal(origin, args, type_tree: TypeTree):
     read_items = [type_tree(_) for _ in args]
 
-    def de(p: Program) -> tuple[Any, ...]:
+    def de(p: Program) -> Tuple[Any, ...]:
         args = []
         todo = list(reversed(read_items))
         while todo:

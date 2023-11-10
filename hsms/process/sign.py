@@ -23,7 +23,7 @@ class SignatureMetadata:
     message: bytes
 
 
-CONDITIONS_FOR_COIN_SPEND: WeakKeyDictionary[CoinSpend, Program] = WeakKeyDictionary()
+CONDITIONS_FOR_COIN_SPEND: WeakKeyDictionary = WeakKeyDictionary()
 
 
 def conditions_for_coin_spend(coin_spend: CoinSpend) -> Program:
