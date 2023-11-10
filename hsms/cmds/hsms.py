@@ -29,9 +29,9 @@ XCH_PER_MOJO = Decimal("1e12")
 def unsigned_spend_from_blob(blob: bytes) -> UnsignedSpend:
     try:
         uncompressed_blob = zlib.decompress(blob)
-        return UnsignedSpend.from_program_bytes(uncompressed_blob)
+        return UnsignedSpend.from_bytes(uncompressed_blob)
     except Exception:
-        return UnsignedSpend.from_program_bytes(blob)
+        return UnsignedSpend.from_bytes(blob)
 
 
 def create_unsigned_spend_pipeline(
