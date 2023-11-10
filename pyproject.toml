@@ -10,8 +10,8 @@ license = { file = "LICENSE" }
 readme = "README.md"
 dependencies = [
   "segno==1.4.1",
-  "chia_base @ git+https://github.com/richardkiss/chia_base@0adbf1fef35451310c37670b01ac9a4d26b8466d#egg=chia_base",
-  "chialisp_puzzles==0.1.0",
+  "chia_base @ git+https://github.com/richardkiss/chia_base@91d9dba09e316714cf4bc86505587437fe442e48#egg=chia_base",
+  "chialisp_puzzles @ git+https://github.com/richardkiss/chialisp_puzzles@eb97cd844b094e6dcd595b5bd6522d3a78eb692c#egg=chialisp_puzzles",
 ]
 # version is defined with `setuptools_scm`
 dynamic = ["version"]

@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import List, Tuple
 
 from chia_base.bls12_381 import BLSPublicKey, BLSSignature
 from chia_base.core import Coin, CoinSpend
@@ -12,13 +13,13 @@ from hsms.clvm_serde import (
 from .signing_hints import PathHint, SumHint
 
 
-CSTuple = tuple[bytes, Program, int, Program]
-SerdeCoinSpends = list[CSTuple]
+CSTuple = Tuple[bytes, Program, int, Program]
+SerdeCoinSpends = List[CSTuple]
 
 
 def to_storage(
     coin_spend_tuples: SerdeCoinSpends,
-) -> list[CoinSpend]:
+) -> List[CoinSpend]:
     return [
         CoinSpend(Coin(_[0], _[1].tree_hash(), _[2]), _[1], _[3])
         for _ in coin_spend_tuples
@@ -26,7 +27,7 @@ def to_storage(
 
 
 def from_storage(
-    coin_spends: list[CoinSpend],
+    coin_spends: List[CoinSpend],
 ) -> SerdeCoinSpends:
     return [
         (
@@ -49,7 +50,7 @@ class SignatureInfo:
 
 @dataclass
 class UnsignedSpend:
-    coin_spends: list[CoinSpend] = field(
+    coin_spends: List[CoinSpend] = field(
         metadata=dict(
             key="c",
             alt_serde_type=(
@@ -59,11 +60,11 @@ class UnsignedSpend:
             ),
         ),
     )
-    sum_hints: list[SumHint] = field(
+    sum_hints: List[SumHint] = field(
         default_factory=list,
         metadata=dict(key="s"),
     )
-    path_hints: list[PathHint] = field(
+    path_hints: List[PathHint] = field(
         default_factory=list,
         metadata=dict(key="p"),
     )

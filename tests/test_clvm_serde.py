@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import List, Tuple
 
 import random
 
@@ -6,7 +7,7 @@ import pytest
 
 from chia_base.bls12_381 import BLSSecretExponent
 from chia_base.core import Coin, CoinSpend
-
+from chia_base.meta.py38 import GenericAlias
 from clvm_rs import Program  # type: ignore
 
 from hsms.clvm_serde import (
@@ -45,7 +46,7 @@ def test_ser():
         assert p == Program.to(b)
         assert fpb(p) == b
 
-    tt = tuple[str, bytes, int]
+    tt = Tuple[str, bytes, int]
     tp = to_program_for_type(tt)
     fp = from_program_for_type(tt)
     for t in [
@@ -54,7 +55,7 @@ def test_ser():
     ]:
         assert tp(t) == Program.to(list(t))
 
-    tt = list[tuple[int, str]]
+    tt = List[Tuple[int, str]]
     tp = to_program_for_type(tt)
     fp = from_program_for_type(tt)
     for t in [
@@ -65,7 +66,7 @@ def test_ser():
         assert tp(t) == prhs
         assert fp(tp(t)) == t
 
-    tt = tuple_frugal[int, str]
+    tt = GenericAlias(tuple_frugal, (int, str))
     tp = to_program_for_type(tt)
     fp = from_program_for_type(tt)
     for v in [
@@ -92,7 +93,7 @@ def test_ser():
 
     @dataclass
     class Nested:
-        a: list[Foo]
+        a: List[Foo]
         b: int
 
     tp = to_program_for_type(Nested)
@@ -153,7 +154,7 @@ def test_serde_frugal():
     class Bar(Frugal):
         a: int
         b: str
-        c: list[int]
+        c: List[int]
 
     tp = to_program_for_type(Bar)
     fp = from_program_for_type(Bar)
@@ -203,12 +204,18 @@ def test_subclasses():
         assert fp(p) == baz
 
 
+def randbytes(r: random.Random, count: int) -> bytes:
+    if hasattr(r, "randbytes"):
+        return r.randbytes(count)
+    return bytes([r.randint(0, 255) for _ in range(count)])
+
+
 def rnd_coin_spend(seed: int) -> CoinSpend:
     r = random.Random(seed)
-    parent = r.randbytes(32)
-    puzzle = Program.to(f"puz: {r.randbytes(5).hex()}")
+    parent = randbytes(r, 32)
+    puzzle = Program.to(f"puz: {randbytes(r, 5).hex()}")
     amount = r.randint(1, 1000) * int(1e3)
-    solution = Program.to(f"sol: {r.randbytes(10).hex()}")
+    solution = Program.to(f"sol: {randbytes(r, 10).hex()}")
     coin = Coin(parent, puzzle.tree_hash(), amount)
     return CoinSpend(coin, puzzle, solution)
 
@@ -230,7 +237,7 @@ def test_interop_sum_hint():
     assert sum_hint == sh1
 
 
-CoinSpendTuple = tuple[bytes, Program, int, Program]
+CoinSpendTuple = Tuple[bytes, Program, int, Program]
 
 
 def test_interop_path_hint():
@@ -297,7 +304,7 @@ def test_interop_unsigned_spend():
 
 
 def test_tuple_frugal():
-    Foo = tuple_frugal[int, str, bytes]
+    Foo = GenericAlias(tuple_frugal, (int, str, bytes))
 
     tp = to_program_for_type(Foo)
     fp = from_program_for_type(Foo)
@@ -333,19 +340,20 @@ def test_failures():
     with pytest.raises(EncodingError):
         fp(Program.to([1, 2]))
 
-    tp = to_program_for_type(tuple_frugal[int])
+    tfi = GenericAlias(tuple_frugal, (int,))
+    tp = to_program_for_type(tfi)
     with pytest.raises(EncodingError):
         tp((1, 2))
 
-    fp = from_program_for_type(tuple_frugal[int])
+    fp = from_program_for_type(tfi)
     with pytest.raises(EncodingError):
         fp(Program.to((1, 2)))
 
-    tp = to_program_for_type(tuple[int])
+    tp = to_program_for_type(Tuple[int])
     with pytest.raises(EncodingError):
         tp((1, 2))
 
-    fp = from_program_for_type(tuple[int])
+    fp = from_program_for_type(Tuple[int])
     with pytest.raises(EncodingError):
         fp(Program.to([1, 2]))
 
