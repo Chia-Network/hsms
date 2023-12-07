@@ -7,7 +7,7 @@ import pytest
 
 from chia_base.bls12_381 import BLSSecretExponent
 from chia_base.core import Coin, CoinSpend
-from chia_base.meta.py38 import GenericAlias
+from chia_base.meta.typing import GenericAlias
 from clvm_rs import Program  # type: ignore
 
 from hsms.clvm_serde import (

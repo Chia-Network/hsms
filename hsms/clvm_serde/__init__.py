@@ -1,8 +1,8 @@
 from dataclasses import is_dataclass, fields, MISSING
-from typing import Any, Callable, List, Optional, Tuple, Type, get_type_hints
+from typing import Any, Callable, Optional, Tuple, Type, get_type_hints
 
-from chia_base.meta.py38 import GenericAlias
 from chia_base.meta.type_tree import ArgsType, CompoundLookup, OriginArgsType, TypeTree
+from chia_base.meta.typing import GenericAlias
 
 from clvm_rs import Program  # type: ignore
 
@@ -301,7 +301,7 @@ def de_for_tuple_frugal(origin, args, type_tree: TypeTree):
                 p = p.pair[1]
             else:
                 v = p
-            args.append(des(v))
+            args.append(des(Program.to(v)))
         return tuple(args)
 
     return de

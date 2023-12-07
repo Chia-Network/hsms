@@ -4,6 +4,7 @@ import argparse
 
 from chia_base.bls12_381 import BLSSignature
 from chia_base.core import SpendBundle
+from chia_base.cbincode import to_bytes
 
 from hsms.core.unsigned_spend import UnsignedSpend
 from hsms.process.sign import generate_synthetic_offset_signatures
@@ -37,7 +38,7 @@ def hsmsmerge(args, parser):
         BLSSignature.from_bytes(a2b_qrint(file_or_string(_))) for _ in args.signature
     ]
     spend_bundle = create_spend_bundle(unsigned_spend, signatures)
-    print(bytes(spend_bundle).hex())
+    print(to_bytes(spend_bundle).hex())
 
 
 def create_parser():

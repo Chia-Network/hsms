@@ -1,5 +1,6 @@
 import argparse
 
+from chia_base.cbincode import from_bytes
 from chia_base.core import SpendBundle
 
 from hsms.debug.debug_spend_bundle import debug_spend_bundle
@@ -16,7 +17,7 @@ def file_or_string(p) -> str:
 
 def hsms_dump_sb(args, parser):
     blob = bytes.fromhex(file_or_string(args.spend_bundle))
-    spend_bundle = SpendBundle.from_bytes(blob)
+    spend_bundle = from_bytes(SpendBundle, blob)
     validates = debug_spend_bundle(spend_bundle)
     assert validates is True
 
