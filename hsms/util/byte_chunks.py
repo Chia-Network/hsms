@@ -39,7 +39,9 @@ class ChunkAssembler:
     chunks: List[bytes]
 
     def __init__(self, chunks=[]):
-        self.chunks = chunks
+        self.chunks = []
+        for chunk in chunks:
+            self.add_chunk(chunk)
 
     def add_chunk(self, chunk: bytes):
         if chunk in self.chunks:
@@ -66,6 +68,8 @@ class ChunkAssembler:
             return len(self.chunks), self.chunks[0][-1] + 1
 
     def __bytes__(self) -> bytes:
+        if not self.is_assembled():
+            raise ValueError("insufficient chunks")
         sorted_chunks = sorted(self.chunks, key=lambda c: c[-2])
         bare_chunks = [c[:-2] for c in sorted_chunks]
         return b"".join(bare_chunks)

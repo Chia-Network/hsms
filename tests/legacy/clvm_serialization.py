@@ -14,11 +14,7 @@ def transform_dict(program, dict_transformer_f):
     where the keys match the keys in d and the values of d are transformed
     by invoking the corresponding values in xformer.
     """
-    try:
-        r = clvm_to_list(program, lambda x: dict_transformer_f(x.pair[0], x.pair[1]))
-    except Exception as ex:
-        print(ex)
-        breakpoint()
+    r = clvm_to_list(program, lambda x: dict_transformer_f(x.pair[0], x.pair[1]))
     d = dict(r)
     return d
 

@@ -137,5 +137,5 @@ def main(argv=sys.argv[1:]):
     return hsm_test_spend(args, parser)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

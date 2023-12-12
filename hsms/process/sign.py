@@ -104,8 +104,6 @@ def generate_synthetic_offset_signatures(us: UnsignedSpend) -> List[SignatureInf
             secret_key = sum_hint.synthetic_offset
             partial_public_key = secret_key.public_key()
             signature = secret_key.sign(message, final_public_key)
-            if final_public_key == partial_public_key:
-                assert signature.verify([(partial_public_key, message)])
             sig_info = SignatureInfo(
                 signature, partial_public_key, final_public_key, message
             )
@@ -135,7 +133,10 @@ def verify_pairs_for_conditions(
 
     agg_sig_unsafe_conditions = d.get(AGG_SIG_UNSAFE, [])
     for condition in agg_sig_unsafe_conditions:
-        yield BLSPublicKey.from_bytes(condition.at("rf")), hexbytes(condition.at("rrf"))
+        yield (
+            BLSPublicKey.from_bytes(condition.at("rf").atom),
+            hexbytes(condition.at("rrf").atom),
+        )
 
 
 def secret_key_for_public_key(

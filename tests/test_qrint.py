@@ -31,16 +31,3 @@ def test_b2a_qrint():
         start = (MAX_SIZE - size) // 2
         blob = BIG_BLOB[start : start + size]
         check_b2a(blob)
-
-
-def print_sizes():
-    long_blob = bytes([_ % 256 for _ in range(4000)])
-    d = []
-    for size in range(2, 96):
-        b = b2a_qrint_payload(long_blob, size)
-        bits_used = ((len(b) + 2) // 3) * 10
-        bytes_used = (bits_used + 7) // 8
-        print(len(b), size)
-        d.append((len(b), size, bytes_used))
-    d.sort()
-    print(d)

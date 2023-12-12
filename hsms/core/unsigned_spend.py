@@ -13,6 +13,10 @@ from hsms.clvm_serde import (
 from .signing_hints import PathHint, SumHint
 
 
+# `CoinSpend` objects have the puzzle reveal and the puzzle hash (in the coin)
+# which is a little redundant. Casting to `CSTuple` removes the redundant
+# puzzle hash, saving 32 bytes when serialized.
+
 CSTuple = Tuple[bytes, Program, int, Program]
 SerdeCoinSpends = List[CSTuple]
 

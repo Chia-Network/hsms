@@ -205,8 +205,6 @@ def test_subclasses():
 
 
 def randbytes(r: random.Random, count: int) -> bytes:
-    if hasattr(r, "randbytes"):
-        return r.randbytes(count)
     return bytes([r.randint(0, 255) for _ in range(count)])
 
 

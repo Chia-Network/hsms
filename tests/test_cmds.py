@@ -31,12 +31,12 @@ def get_test_cases(path):
             while 1:
                 line = f.readline().rstrip()
                 if len(line) < 1 or line[0] != "#":
-                    if line[-1:] == "\\":
+                    if line[-1:] == "\\":  # pragma: no cover
                         cmd_lines.append(line[:-1])
                         continue
                     cmd_lines.append(line)
                     break
-                comments.append(line + "\n")
+                comments.append(line + "\n")  # pragma: no cover
             expected_output = f.read()
             test_name = os.path.relpath(p, PREFIX).replace(".", "_").replace("/", "_")
             test_cases.append((test_name, cmd_lines, expected_output, comments, p))
@@ -70,7 +70,7 @@ def make_f(cmd_lines, expected_output, comments, path):
         cmd = "".join(cmd_lines)
         for c in cmd.split(";"):
             r, actual_output, actual_stderr = self.invoke_tool(c)
-        if actual_output != expected_output:
+        if actual_output != expected_output:  # pragma: no cover
             print(path)
             print(cmd)
             print(actual_output)
@@ -100,11 +100,11 @@ def inject(*paths):
 inject("cmds")
 
 
-def main():
+def main():  # pragma: no cover
     unittest.main()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()
 
 

@@ -55,5 +55,5 @@ def main(argv=sys.argv[1:]):
     return hsms_dump_us(args, parser)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()
