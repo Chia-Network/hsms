@@ -297,8 +297,8 @@ def de_for_tuple_frugal(origin, args, type_tree: TypeTree):
         while todo:
             des = todo.pop()
             if todo:
-                v = p.pair[0]
-                p = p.pair[1]
+                v = Program.to(p.pair[0])
+                p = Program.to(p.pair[1])
             else:
                 v = p
             args.append(des(v))
