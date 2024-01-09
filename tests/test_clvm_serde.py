@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 import random
 
@@ -133,6 +133,23 @@ def test_ser():
         p = tp(foo)
         f1 = fp(p)
         assert f1 == foo
+
+    @dataclass
+    class Foo:
+        a: Optional[int] = field(metadata=dict(key="a"))
+
+    tp = to_program_for_type(Foo)
+    fp = from_program_for_type(Foo)
+    p = Program.to([("a", 1000)])
+    foo = fp(p)
+    assert foo.a == 1000
+    p1 = tp(foo)
+    assert p1 == p
+    p = Program.to([("a", [])])
+    foo = fp(p)
+    assert foo.a is None
+    p1 = tp(foo)
+    assert p1 == p
 
 
 def test_serde_frugal():
