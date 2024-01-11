@@ -140,16 +140,24 @@ def test_ser():
 
     tp = to_program_for_type(Foo)
     fp = from_program_for_type(Foo)
-    p = Program.to([("a", 1000)])
+    p = Program.to([("a", Program.to((1, 1000)))])
     foo = fp(p)
     assert foo.a == 1000
     p1 = tp(foo)
     assert p1 == p
-    p = Program.to([("a", [])])
+    p = Program.to([("a", Program.to((Program.null(), Program.null())))])
     foo = fp(p)
     assert foo.a is None
     p1 = tp(foo)
     assert p1 == p
+
+    @dataclass
+    class Foo:
+        a: Optional[List[int]] = field(metadata=dict(key="a"))
+
+    tp = to_program_for_type(Foo)
+    fp = from_program_for_type(Foo)
+    assert fp(tp(Foo([]))) == Foo([])
 
 
 def test_serde_frugal():

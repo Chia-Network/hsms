@@ -58,9 +58,9 @@ def serialize_for_optional(origin, args, type_tree: TypeTree) -> Program:
 
         def serialize_optional(item):
             if item is None:
-                return Program.null()
+                return Program.to((Program.null(), Program.null()))
             else:
-                return write_item(item)
+                return Program.to((1, write_item(item)))
 
         return serialize_optional
     else:
@@ -327,10 +327,10 @@ def deser_for_optional(origin, args, type_tree: TypeTree):
         read_item = type_tree(args[0])
 
         def deserialize_optional(p: Program):
-            if p == Program.null():
+            if p.first() == Program.null():
                 return None
             else:
-                return read_item(p)
+                return read_item(p.rest())
 
         return deserialize_optional
     else:
