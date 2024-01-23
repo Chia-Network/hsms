@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Tuple, Optional
+from typing import List, Optional, Union, Tuple
 
 import random
 
@@ -158,6 +158,16 @@ def test_ser():
     tp = to_program_for_type(Foo)
     fp = from_program_for_type(Foo)
     assert fp(tp(Foo([]))) == Foo([])
+
+    @dataclass
+    class Bar:
+        a: Union[int, str]
+
+    with pytest.raises(ValueError):
+        _ = to_program_for_type(Bar)
+
+    with pytest.raises(ValueError):
+        _ = from_program_for_type(Bar)
 
 
 def test_serde_frugal():
