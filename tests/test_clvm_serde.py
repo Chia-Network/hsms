@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Tuple
+from typing import List, Optional, Union, Tuple
 
 import random
 
@@ -133,6 +133,41 @@ def test_ser():
         p = tp(foo)
         f1 = fp(p)
         assert f1 == foo
+
+    @dataclass
+    class Foo:
+        a: Optional[int] = field(metadata=dict(key="a"))
+
+    tp = to_program_for_type(Foo)
+    fp = from_program_for_type(Foo)
+    p = Program.to([("a", Program.to((1, 1000)))])
+    foo = fp(p)
+    assert foo.a == 1000
+    p1 = tp(foo)
+    assert p1 == p
+    p = Program.to([("a", Program.to((Program.null(), Program.null())))])
+    foo = fp(p)
+    assert foo.a is None
+    p1 = tp(foo)
+    assert p1 == p
+
+    @dataclass
+    class Foo:
+        a: Optional[List[int]] = field(metadata=dict(key="a"))
+
+    tp = to_program_for_type(Foo)
+    fp = from_program_for_type(Foo)
+    assert fp(tp(Foo([]))) == Foo([])
+
+    @dataclass
+    class Bar:
+        a: Union[int, str]
+
+    with pytest.raises(ValueError):
+        _ = to_program_for_type(Bar)
+
+    with pytest.raises(ValueError):
+        _ = from_program_for_type(Bar)
 
 
 def test_serde_frugal():

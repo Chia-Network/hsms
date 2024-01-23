@@ -1,5 +1,5 @@
 from dataclasses import is_dataclass, fields, MISSING
-from typing import Any, Callable, Optional, Tuple, Type, get_type_hints
+from typing import Any, Callable, Optional, Tuple, Type, Union, get_type_hints
 
 from chia_base.meta.type_tree import ArgsType, CompoundLookup, OriginArgsType, TypeTree
 from chia_base.meta.typing import GenericAlias
@@ -52,6 +52,21 @@ def serialize_for_list(origin, args, type_tree: TypeTree) -> Program:
     return serialize_list
 
 
+def serialize_for_optional(origin, args, type_tree: TypeTree) -> Program:
+    if len(args) == 2 and type(None) is args[1]:
+        write_item = type_tree(args[0])
+
+        def serialize_optional(item):
+            if item is None:
+                return Program.to((Program.null(), Program.null()))
+            else:
+                return Program.to((1, write_item(item)))
+
+        return serialize_optional
+    else:
+        raise ValueError("No serialization support for Union types (besides Optional)")
+
+
 def serialize_for_tuple(origin, args, type_tree: TypeTree) -> Program:
     write_items = [type_tree(_) for _ in args]
 
@@ -99,6 +114,7 @@ SERIALIZER_COMPOUND_TYPE_LOOKUP: CompoundLookup[ToProgram] = {
     list: serialize_for_list,
     tuple: serialize_for_tuple,
     tuple_frugal: ser_for_tuple_frugal,
+    Union: serialize_for_optional,
 }
 
 
@@ -306,11 +322,26 @@ def de_for_tuple_frugal(origin, args, type_tree: TypeTree):
 
     return de
 
+def deser_for_optional(origin, args, type_tree: TypeTree):
+    if len(args) == 2 and type(None) is args[1]:
+        read_item = type_tree(args[0])
+
+        def deserialize_optional(p: Program):
+            if p.first() == Program.null():
+                return None
+            else:
+                return read_item(p.rest())
+
+        return deserialize_optional
+    else:
+        raise ValueError("No serialization support for Union types (besides Optional)")
+
 
 DESERIALIZER_COMPOUND_TYPE_LOOKUP: CompoundLookup[FromProgram] = {
     list: deser_for_list,
     tuple: deser_for_tuple,
     tuple_frugal: de_for_tuple_frugal,
+    Union: deser_for_optional,
 }
 
 
