@@ -10,7 +10,7 @@ license = { file = "LICENSE" }
 readme = "README.md"
 dependencies = [
   "segno==1.4.1",
-  "chia_base==0.1.4",
+  "chia_base==0.1.6",
   "chialisp_puzzles>=0.1.1",
 ]
 # version is defined with `setuptools_scm`
