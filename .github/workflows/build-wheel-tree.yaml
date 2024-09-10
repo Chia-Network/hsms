@@ -15,7 +15,7 @@ concurrency:
 jobs:
   build-wheels:
     runs-on: ubuntu-latest
-    container: quay.io/pypa/manylinux_2_24_x86_64
+    container: quay.io/pypa/manylinux_2_28_x86_64
     steps:
       - name: Add safe git directory
         uses: Chia-Network/actions/git-mark-workspace-safe@main
