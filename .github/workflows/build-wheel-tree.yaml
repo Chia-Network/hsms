@@ -15,12 +15,12 @@ concurrency:
 jobs:
   build-wheels:
     runs-on: ubuntu-latest
-    container: quay.io/pypa/manylinux_2_24_x86_64
+    container: quay.io/pypa/manylinux_2_28_x86_64
     steps:
       - name: Add safe git directory
         uses: Chia-Network/actions/git-mark-workspace-safe@main
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -39,7 +39,7 @@ jobs:
             auditwheel repair --no-update-tags -w dist $FILE || true
           done
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: wheels
           path: ./dist
