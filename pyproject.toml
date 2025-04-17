@@ -9,7 +9,7 @@ authors = [{ name = "Richard Kiss", email = "him@richardkiss.com" }]
 license = { file = "LICENSE" }
 readme = "README.md"
 dependencies = [
-  "segno==1.4.1",
+  "segno==1.6.6",
   "chia_base>=0.1.5",
   "chialisp_puzzles>=0.1.1",
 ]
