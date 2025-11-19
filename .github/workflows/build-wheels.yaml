@@ -32,7 +32,7 @@ jobs:
           fetch-depth: 0
 
       - name: Create venv
-        run: /opt/python/cp38-cp38/bin/python3 -m venv venv
+        run: /opt/python/cp310-cp310/bin/python3 -m venv venv
 
       - name: Create Wheel
         run: |

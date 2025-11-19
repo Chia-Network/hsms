@@ -1,0 +1,12 @@
+[console_scripts]
+hsm_dump_sb = hsms.cmds.hsm_dump_sb:main
+hsm_dump_us = hsms.cmds.hsm_dump_us:main
+hsm_test_spend = hsms.cmds.hsm_test_spend:main
+hsmgen = hsms.cmds.hsmgen:main
+hsmmerge = hsms.cmds.hsmmerge:main
+hsmpk = hsms.cmds.hsmpk:main
+hsms = hsms.cmds.hsms:main
+hsmwizard = hsms.cmds.hsmwizard:main
+poser_gen = hsms.cmds.poser_gen:main
+poser_verify = hsms.cmds.poser_verify:main
+qrint = hsms.cmds.qrint:main
