@@ -1,4 +1,5 @@
-from dataclasses import is_dataclass, fields, MISSING
+from dataclasses import MISSING, fields, is_dataclass
+from types import UnionType
 from typing import Any, Callable, Optional, Tuple, Type, Union, get_type_hints
 
 from chia_base.meta.type_tree import ArgsType, CompoundLookup, OriginArgsType, TypeTree
@@ -115,6 +116,7 @@ SERIALIZER_COMPOUND_TYPE_LOOKUP: CompoundLookup[ToProgram] = {
     tuple: serialize_for_tuple,
     tuple_frugal: ser_for_tuple_frugal,
     Union: serialize_for_optional,
+    UnionType: serialize_for_optional,
 }
 
 
@@ -342,6 +344,7 @@ DESERIALIZER_COMPOUND_TYPE_LOOKUP: CompoundLookup[FromProgram] = {
     tuple: deser_for_tuple,
     tuple_frugal: de_for_tuple_frugal,
     Union: deser_for_optional,
+    UnionType: deser_for_optional,
 }
 
 
