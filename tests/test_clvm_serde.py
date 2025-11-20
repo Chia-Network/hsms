@@ -31,7 +31,8 @@ from .legacy.signing_hints import (
 from .legacy.unsigned_spend import UnsignedSpend as LegacyUS
 
 
-def test_ser():
+@pytest.mark.parametrize("pep604", [True, False])
+def test_ser(pep604: bool):
     tpb = to_program_for_type(bytes)
     fpb = from_program_for_type(bytes)
     tps = to_program_for_type(str)
@@ -134,9 +135,16 @@ def test_ser():
         f1 = fp(p)
         assert f1 == foo
 
-    @dataclass
-    class Foo:
-        a: Optional[int] = field(metadata=dict(key="a"))
+    if pep604:
+
+        @dataclass
+        class Foo:
+            a: int | None = field(metadata=dict(key="a"))
+    else:
+
+        @dataclass
+        class Foo:
+            a: Optional[int] = field(metadata=dict(key="a"))
 
     tp = to_program_for_type(Foo)
     fp = from_program_for_type(Foo)
@@ -151,9 +159,16 @@ def test_ser():
     p1 = tp(foo)
     assert p1 == p
 
-    @dataclass
-    class Foo:
-        a: Optional[List[int]] = field(metadata=dict(key="a"))
+    if pep604:
+
+        @dataclass
+        class Foo:
+            a: List[int] | None = field(metadata=dict(key="a"))
+    else:
+
+        @dataclass
+        class Foo:
+            a: Optional[List[int]] = field(metadata=dict(key="a"))
 
     tp = to_program_for_type(Foo)
     fp = from_program_for_type(Foo)
