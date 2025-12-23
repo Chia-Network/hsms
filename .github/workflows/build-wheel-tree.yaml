@@ -39,7 +39,7 @@ jobs:
             auditwheel repair --no-update-tags -w dist $FILE || true
           done
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: wheels
           path: ./dist
