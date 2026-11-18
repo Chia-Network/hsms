@@ -1,4 +1,4 @@
-FROM python:3.10-bullseye
+FROM python:3.11-bookworm
 
 ENTRYPOINT ["/bin/bash"]
 ENV PATH="/root/.cargo/bin:$PATH"
